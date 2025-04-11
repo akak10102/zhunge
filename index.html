@@ -1,2984 +1,1672 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang=zh-CN>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 页面标题 -->
-    <title>link查询-低调集团</title>
-    <!-- 修改网页图标 -->
-    <!-- <link rel="icon" href="image/jiazubiaozhi.png" type="image/png"> -->
-    <link rel="icon" href="image/favicon.ico" type="image/x-icon">	
-    <!-- 预加载Font Awesome CSS - 使用更快的CDN并添加preconnect -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
-    <style>
-        /* ================= 全局样式 ================= */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        
-        body {
-            background: #000;
-            color: #FFFFFF;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: row; /* 改为横向布局以容纳侧边栏 */
-        }
-
-        /* ================= 侧边栏样式 ================= */
-        .sidebar {
-            width: 50px; /* 默认收起宽度 */
-            height: 100vh;
-            background-color: #2c3e50;
-            color: white;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-
-        /* 鼠标悬停时展开侧边栏 */
-        .sidebar:hover {
-            width: 200px;
-            /* 添加阴影效果，使其浮于内容之上 */
-            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
-        }
-
-        /* 侧边栏菜单项样式 */
-        .sidebar-menu {
-            list-style: none;
-            padding: 20px 0;
-        }
-
-        .sidebar-menu li {
-            position: relative;
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        /* 菜单项图标样式 - 优化后的定位方式 */
-        .sidebar-menu li i {
-            position: absolute;
-            left: 15px; /* 固定图标位置 */
-            top: 50%; /* 垂直居中 */
-            transform: translateY(-50%); /* 确保精确垂直居中 */
-            width: 20px;
-            text-align: center;
-            font-size: 18px;
-            transition: none; /* 移除过渡效果防止抖动 */
-        }
-
-        /* 侧边栏菜单文字 - 默认隐藏 */
-        .sidebar-menu li span {
-            opacity: 0;
-            transition: opacity 0.3s;
-            margin-left: 30px; /* 调整图标和文字间距 */
-            display: inline-block; /* 确保文字对齐 */
-        }
-
-        /* 侧边栏展开时显示文字 */
-        .sidebar:hover .sidebar-menu li span {
-            opacity: 1;
-        }
-
-        /* 移除侧边栏展开时图标位置调整的代码，保持图标固定 */
-
-        /* 菜单项悬停效果 */
-        .sidebar-menu li:hover {
-            background-color: #3498db; /* 悬停时填充蓝色 */
-            color: white;
-        }
-
-        /* 当前激活的菜单项样式 */
-        .sidebar-menu li.active {
-            background-color: #2980b9; /* 激活状态填充深蓝色 */
-            color: white;
-        }
-
-        /* 未开放菜单项的提示样式 */
-        .coming-soon {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color:#888888 ; /* #e74c3c */
-            color: white;
-            font-size: 10px;
-            padding: 2px 5px;
-            border-radius: 10px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-
-        .sidebar:hover .coming-soon {
-            opacity: 1;
-        }
-
-        /* ================= 主内容区域样式 ================= */
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            margin-left: 50px; /* 为侧边栏留出固定空间 */
-            transition: margin-left 0.3s;
-        }
-
-        /* 当侧边栏展开时调整主内容边距 */
-        .sidebar:hover ~ .main-content {
-            margin-left: 50px; /* 保持固定边距，侧边栏将覆盖在内容上 */
-        }
-
-        /* ================= 欢迎弹窗样式 ================= */
-        .welcome-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .welcome-modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .welcome-card {
-            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-
-        .welcome-title {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #1E90FF;
-            text-shadow: 0 0 10px rgba(30, 144, 255, 0.5);
-        }
-
-        .welcome-message {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        .welcome-confirm {
-            background: #1E90FF;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s;
-            float: right;
-        }
-
-        .welcome-confirm:hover {
-            background: #1a7ac9;
-            box-shadow: 0 0 15px rgba(30, 144, 255, 0.5);
-        }
-
-        /* ================= 页面标题样式 ================= */
-        .page-title {
-            text-align: center;
-            margin: 20px 0 30px;
-            color: #fff;
-            font-size: 2.5rem;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(30, 144, 255, 0.7);
-            position: relative;
-        }
-
-        .page-title::after {
-            content: '';
-            display: block;
-            width: 150px;
-            height: 3px;
-            background: linear-gradient(to right, transparent, #1E90FF, transparent);
-            margin: 10px auto;
-        }
-
-        /* ================= 基础卡片样式 ================= */
-        .card {
-            position: relative;
-            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
-            border-radius: 12px;
-            padding: 24px;
-            margin: 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            overflow: hidden;
-            max-width: none;
-            min-width: 0; /* 去除最小宽度限制 */
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(to top, var(--glow-color), transparent);
-            pointer-events: none;
-            z-index: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .card img {
-            width: 68px;
-            height: 68px;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            flex-shrink: 0;
-            transition: transform 0.3s;
-            position: relative;
-            z-index: 1;
-        }
-        .content {
-            flex: 1;
-            min-width: 0;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-            overflow: hidden; /* 防止内容溢出 */
-        }
-        .title {
-            font-size: 1.2rem;
-            margin-bottom: 12px;
-            transition: color 0.3s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        .description {
-            font-size: 1rem;
-            line-height: 1.8;
-            margin-bottom: 12px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-            word-break: break-word; /* 允许单词换行 */
-        }
-        .footer-text {
-            font-size: 0.875rem;
-            line-height: 1.6;
-            opacity: 0.9;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            word-break: break-word;
-        }
-        @media (max-width: 600px) {
-            .card {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-                padding: 16px;
-            }
-            .title {
-                white-space: normal;
-            }
-        }
-
-        /* ================= 自适应布局优化 ================= */
-        .display-area {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 80%;
-            margin: 2rem auto;
-            padding: 10px 0;
-        }
-
-        /* 卡片行样式 - 关键修改 */
-        .card-row {
-            display: flex;
-            gap: 5px;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            transform-origin: center center;
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            align-items: stretch; /* 确保所有卡片等高 */
-        }
-
-        /* 悬停效果 - 整行放大 */
-        .card-row:hover {
-            transform: scale(1.05);
-            z-index: 10;
-        }
-
-        /* 悬停时卡片效果 */
-        .card-row:hover .card {
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-        }
-        .card-row:hover .card::before {
-            opacity: 0.8;
-        }
-        .card-row:hover .card img {
-            transform: rotate(-3deg) scale(1.05);
-        }
-
-        /* ================= 第一列卡片样式 ================= */
-        .card-10 { 
-            background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
-            justify-content: center;
-            text-align: center;
-            min-height: 120px;
-            padding: 10px 15px;
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-10::before {
-            display: none;
-        }
-        .card-10 .title {
-            color: #FFA500;
-            margin-bottom: 8px;
-        }
-
-        /* ================= 第二列卡片样式 ================= */
-        .card-21 { 
-            --glow-color: rgba(255, 0, 0, 0.35);
-            background: linear-gradient(145deg, #2a0a0a, #1a0a0a);
-            justify-content: center;
-            text-align: center;
-            min-height: 120px;
-            padding: 20px 30px;
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-22 { 
-            --glow-color: rgba(0, 128, 255, 0.35);
-            background: linear-gradient(145deg, #0a0a2a, #0a0a1a);
-            justify-content: center;
-            text-align: center;
-            min-height: 120px;
-            padding: 20px 30px;
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-23 { 
-            --glow-color: rgba(0, 255, 128, 0.35);
-            background: linear-gradient(145deg, #0a2a0a, #0a1a0a);
-            justify-content: center;
-            text-align: center;
-            min-height: 120px;
-            padding: 20px 30px;
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-24 { 
-            --glow-color: rgba(128, 0, 255, 0.35);
-            background: linear-gradient(145deg, #1a0a2a, #0a0a1a);
-            justify-content: center;
-            text-align: center;
-            min-height: 120px;
-            padding: 20px 30px;
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-25 { 
-            --glow-color: rgba(192, 192, 192, 0.65);
-            background: linear-gradient(145deg, #333333, #1a1a1a);
-            justify-content: center;
-            text-align: center;
-            min-height: 120px;
-            padding: 20px 30px;
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-       .card-26 { 
-            background: linear-gradient(to bottom, #14002b, #3a3a3a);
-            justify-content: center;
-            text-align: center;
-            min-height: 120px;
-            padding: 20px 30px;
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-26::before {
-            display: none;
-        }
-        
-        /* ================= 第三列卡片样式 ================= */
-        .card-31 { 
-            --glow-color: rgba(255, 0, 0, 0.35); 
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-32 { 
-            --glow-color: rgba(0, 128, 255, 0.35); 
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-33 { 
-            --glow-color: rgba(0, 255, 128, 0.35); 
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-34 { 
-            --glow-color: rgba(128, 0, 255, 0.35); 
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-35 { 
-            --glow-color: rgba(192, 192, 192, 0.65); 
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        /* card-36样式 - 上紫下灰渐变光带 */
-        .card-36 { 
-            --glow-color: rgba(128, 0, 255, 0.35);
-            --glow-color-2: rgba(192, 192, 192, 0.65);
-            position: relative;
-            flex: 0 0 auto;
-            width: auto; /* 宽度自适应内容 */
-        }
-        .card-36::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(to bottom, var(--glow-color), transparent);
-            pointer-events: none;
-            z-index: 0;
-            transition: opacity 0.3s;
-        }
-        .card-36::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(to top, var(--glow-color-2), transparent);
-            pointer-events: none;
-            z-index: 0;
-            transition: opacity 0.3s;
-        }
-        
-        /* ================= 第四列卡片样式 ================= */
-        .card-41 { 
-            --glow-color: rgba(255, 0, 0, 0.35); 
-            flex: 1 1 auto; /* 填满剩余空间 */
-        }
-        .card-42 { 
-            --glow-color: rgba(0, 128, 255, 0.35); 
-            flex: 1 1 auto; /* 填满剩余空间 */
-        }
-        .card-43 { 
-            --glow-color: rgba(0, 255, 128, 0.35); 
-            flex: 1 1 auto; /* 填满剩余空间 */
-        }
-        .card-44 { 
-            --glow-color: rgba(128, 0, 255, 0.35); 
-            flex: 1 1 auto; /* 填满剩余空间 */
-        }
-        .card-45 { 
-            --glow-color: rgba(192, 192, 192, 0.65); 
-            flex: 1 1 auto; /* 填满剩余空间 */
-        }
-        /* card-46样式 - 上紫下灰渐变光带 */
-        .card-46 { 
-            --glow-color: rgba(128, 0, 255, 0.35);
-            --glow-color-2: rgba(192, 192, 192, 0.65);
-            position: relative;
-            flex: 1 1 auto; /* 填满剩余空间 */
-        }
-        .card-46::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(to bottom, var(--glow-color), transparent);
-            pointer-events: none;
-            z-index: 0;
-            transition: opacity 0.3s;
-        }
-        .card-46::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(to top, var(--glow-color-2), transparent);
-            pointer-events: none;
-            z-index: 0;
-            transition: opacity 0.3s;
-        }
-
-        /* ================= 搜索区域样式 ================= */
-        .search-container {
-            padding: 2rem;
-            background: #1A1A1A;
-            border-radius: 12px;
-            margin: 0.5rem auto;
-            width: 80%;
-            max-width: 1200px;
-            position: relative;
-        }
-        .search-box {
-            display: flex;
-            gap: 1rem;
-            max-width: 250px;
-            width: 100%;
-            align-items: center;
-            position: relative;
-            margin: 0 auto;
-        }
-        #searchInput {
-            flex: 1;
-            width: 250px;
-            height: 42px;
-            padding: 0 15px;
-            background: #000;
-            border: 2px solid #333;
-            border-radius: 8px;
-            color: #FFF;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        #searchInput:hover,
-        #searchInput:focus {
-            outline: none;
-            border-color: #1E90FF;
-            box-shadow: 0 0 12px rgba(30, 144, 255, 0.5);
-        }
-        .search-btn {
-            height: 42px;
-            min-width: 80px;
-            padding: 0 12px;
-            background: #1A1A1A;
-            border: 2px solid #333;
-            border-radius: 8px;
-            color: #FFF;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
-        }
-        .search-btn:hover {
-            background: #1E90FF;
-            border-color: #1E90FF;
-            box-shadow: 0 0 12px rgba(30, 144, 255, 0.4);
-        }
-        .reset-btn {
-            height: 42px;
-            min-width: 42px;
-            padding: 0 12px;
-            background: #1A1A1A;
-            border: 2px solid #333;
-            border-radius: 8px;
-            color: #FFF;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .reset-btn:hover {
-            background: #1E90FF;
-            border-color: #1E90FF;
-            box-shadow: 0 0 12px rgba(30, 144, 255, 0.4);
-        }
-        .reset-btn i {
-            color: #FFF; /* 重置按钮图标改为白色 */
-        }
-        .suggestions {
-            position: absolute;
-            width: 250px;
-            max-height: 200px;
-            overflow-y: auto;
-            background: #1A1A1A;
-            border: 2px solid #333;
-            border-radius: 8px;
-            display: none;
-            z-index: 1000;
-            left: 0;
-            top: 110%;
-            margin-top: 10px;
-        }
-        .suggestion-item {
-            padding: 8px 12px;
-            cursor: pointer;
-            transition: background 0.3s;
-            white-space: nowrap;
-            text-align: left;
-        }
-        .suggestion-item:hover {
-            background: #1E90FF;
-            color: #000;
-        }
-        .highlight {
-            color: #87CEFA;
-            font-weight: bold;
-        }
-        .history-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .history-btn {
-            padding: 6px 15px;
-            background: #2A2A2A;
-            border: 1px solid transparent;
-            border-radius: 20px;
-            color: #CCCCCC;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .history-btn:hover {
-            color: #1E90FF;
-            border-color: #1E90FF;
-            background: rgba(30, 144, 255, 0.1);
-            box-shadow: 0 0 8px rgba(30, 144, 255, 0.3);
-        }
-        .clear-history-btn {
-            color: #FF5555 !important;
-            border-color: #FF5555 !important;
-        }
-        .clear-history-btn:hover {
-            background: rgba(255, 85, 85, 0.1) !important;
-        }
-        .divider {
-            height: 1px;
-            background: #333;
-            margin: 0.5rem auto;
-            width: 80%;
-        }
-        .expandable-section {
-            background: #1A1A1A;
-            border-radius: 12px;
-            margin: 1rem auto;
-            width: 80%;
-            overflow: hidden;
-        }
-        .expand-header {
-            padding: 16px;
-            background: #000;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .expand-content {
-            padding: 0 16px;
-            max-height: 0;
-            transition: max-height 0.3s ease-out;
-        }
-        .arrow {
-            transition: transform 0.3s, color 0.3s;
-            color: gray;
-        }
-        .expand-header:hover .arrow {
-            color: #1E90FF;
-        }
-        .expanded .arrow {
-            transform: rotate(180deg);
-        }
-        footer {
-            background: #1A1A1A;
-            padding: 1.5rem;
-            text-align: center;
-            margin-top: auto;
-        }
-        .btn-style-2 {
-            background: none;
-            border: none;
-            color: #FFFFFF;
-            cursor: pointer;
-            padding: 4px 8px;
-            margin-left: 8px;
-            transition: all 0.3s;
-            position: relative;
-        }
-        .btn-style-2::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: #1E90FF;
-            transition: width 0.3s;
-        }
-        .btn-style-2:hover {
-            color: #1E90FF;
-            background: rgba(30, 144, 255, 0.1);
-        }
-        .btn-style-2:hover::after {
-            width: 100%;
-        }
-        .btn-style-2.active {
-            color: #1E90FF;
-        }
-        .btn-style-2.active::after {
-            width: 100%;
-        }
-        .btn-style-2.all-btn {
-            font-weight: bold;
-        }
-        .btn-style-2.all-btn.active {
-            cursor: default;
-        }
-        .category-row {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 12px 0;
-            border-bottom: 1px solid #333;
-            position: relative;
-        }
-        .category-row:last-child {
-            border-bottom: none;
-        }
-        .category-row span {
-            position: relative;
-            padding-right: 15px;
-        }
-        .category-row span::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 1px;
-            height: 20px;
-            background: #333;
-        }
-        .category-actions {
-            margin-left: 50px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        /* 返回顶部按钮 */
-        .back-to-top {
-            position: fixed;
-            right: 100px;
-            bottom: 100px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(30, 144, 255, 0.7);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            opacity: 0;
-            visibility: hidden;
-            z-index: 999;
-        }
-        .back-to-top:hover {
-            background: rgba(30, 144, 255, 1);
-            opacity: 0.8;
-        }
-        .back-to-top.show {
-            opacity: 0.5;
-            visibility: visible;
-        }
-        .back-to-top i {
-            font-size: 20px;
-        }
-
-    </style>
+<meta charset=UTF-8>
+<meta name=viewport content="width=device-width, initial-scale=1.0">
+<title>link查询-低调集团</title>
+<link rel=icon href=image/favicon.ico type=image/x-icon>
+<link rel=preconnect href=https://cdnjs.cloudflare.com>
+<link rel=preload href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css as=style onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css></noscript>
+<style>*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}body{background:#000;color:#fff;min-height:100vh;display:flex;flex-direction:row}.sidebar{width:50px;height:100vh;background-color:#2c3e50;color:white;position:fixed;left:0;top:0;z-index:1000;transition:all .3s ease;overflow:hidden}.sidebar:hover{width:200px;box-shadow:5px 0 15px rgba(0,0,0,0.5)}.sidebar-menu{list-style:none;padding:20px 0}.sidebar-menu li{position:relative;padding:12px 20px;cursor:pointer;transition:all .3s;white-space:nowrap;overflow:hidden}.sidebar-menu li i{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:20px;text-align:center;font-size:18px;transition:none}.sidebar-menu li span{opacity:0;transition:opacity .3s;margin-left:30px;display:inline-block}.sidebar:hover .sidebar-menu li span{opacity:1}.sidebar-menu li:hover{background-color:#3498db;color:white}.sidebar-menu li.active{background-color:#2980b9;color:white}.coming-soon{position:absolute;right:10px;top:50%;transform:translateY(-50%);background-color:#888;color:white;font-size:10px;padding:2px 5px;border-radius:10px;opacity:0;transition:opacity .3s}.sidebar:hover .coming-soon{opacity:1}.main-content{flex:1;padding:20px;margin-left:50px;transition:margin-left .3s}.sidebar:hover ~ .main-content{margin-left:50px}.welcome-modal{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.8);display:flex;justify-content:center;align-items:center;z-index:2000;opacity:0;visibility:hidden;transition:all .3s ease}.welcome-modal.show{opacity:1;visibility:visible}.welcome-card{background:linear-gradient(145deg,#1a1a1a,#0a0a0a);border-radius:12px;padding:30px;max-width:500px;width:90%;box-shadow:0 10px 25px rgba(0,0,0,0.5);position:relative;border:1px solid rgba(255,255,255,0.1);text-align:center}.welcome-title{font-size:2rem;margin-bottom:20px;color:#1e90ff;text-shadow:0 0 10px rgba(30,144,255,0.5)}.welcome-message{font-size:1.1rem;line-height:1.6;margin-bottom:30px}.welcome-confirm{background:#1e90ff;color:white;border:0;padding:10px 25px;border-radius:6px;cursor:pointer;font-size:1rem;transition:all .3s;float:right}.welcome-confirm:hover{background:#1a7ac9;box-shadow:0 0 15px rgba(30,144,255,0.5)}.page-title{text-align:center;margin:20px 0 30px;color:#fff;font-size:2.5rem;font-weight:bold;text-shadow:0 0 10px rgba(30,144,255,0.7);position:relative}.page-title::after{content:'';display:block;width:150px;height:3px;background:linear-gradient(to right,transparent,#1E90FF,transparent);margin:10px auto}.card{position:relative;background:linear-gradient(145deg,#1a1a1a,#0a0a0a);border-radius:12px;padding:24px;margin:0;box-shadow:0 4px 12px rgba(0,0,0,0.3);display:flex;align-items:center;gap:24px;color:#fff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;border:1px solid rgba(255,255,255,0.1);transition:all .3s cubic-bezier(0.25,0.46,0.45,0.94);overflow:hidden;max-width:none;min-width:0}.card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,var(--glow-color),transparent);pointer-events:none;z-index:0;transition:opacity .3s}.card img{width:68px;height:68px;border-radius:8px;object-fit:cover;box-shadow:0 2px 4px rgba(0,0,0,0.2);flex-shrink:0;transition:transform .3s;position:relative;z-index:1}.content{flex:1;min-width:0;position:relative;z-index:1;text-shadow:0 2px 4px rgba(0,0,0,0.5);overflow:hidden}.title{font-size:1.2rem;margin-bottom:12px;transition:color .3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 4px rgba(0,0,0,0.5)}.description{font-size:1rem;line-height:1.8;margin-bottom:12px;text-shadow:0 1px 2px rgba(0,0,0,0.4);word-break:break-word}.footer-text{font-size:.875rem;line-height:1.6;opacity:.9;text-shadow:0 1px 2px rgba(0,0,0,0.3);word-break:break-word}@media(max-width:600px){.card{flex-direction:column;align-items:center;text-align:center;padding:16px}.title{white-space:normal}}.display-area{display:flex;flex-direction:column;gap:15px;width:80%;margin:2rem auto;padding:10px 0}.card-row{display:flex;gap:5px;transition:all .3s cubic-bezier(0.25,0.46,0.45,0.94);transform-origin:center center;position:relative;z-index:1;width:100%;align-items:stretch}.card-row:hover{transform:scale(1.05);z-index:10}.card-row:hover .card{box-shadow:0 12px 24px rgba(0,0,0,0.4);background:linear-gradient(145deg,#2a2a2a,#1a1a1a)}.card-row:hover .card::before{opacity:.8}.card-row:hover .card img{transform:rotate(-3deg) scale(1.05)}.card-10{background:linear-gradient(145deg,#0a0a0a,#1a1a1a);justify-content:center;text-align:center;min-height:120px;padding:10px 15px;flex:0 0 auto;width:auto}.card-10::before{display:none}.card-10 .title{color:#ffa500;margin-bottom:8px}.card-21{--glow-color:rgba(255,0,0,0.35);background:linear-gradient(145deg,#2a0a0a,#1a0a0a);justify-content:center;text-align:center;min-height:120px;padding:20px 30px;flex:0 0 auto;width:auto}.card-22{--glow-color:rgba(0,128,255,0.35);background:linear-gradient(145deg,#0a0a2a,#0a0a1a);justify-content:center;text-align:center;min-height:120px;padding:20px 30px;flex:0 0 auto;width:auto}.card-23{--glow-color:rgba(0,255,128,0.35);background:linear-gradient(145deg,#0a2a0a,#0a1a0a);justify-content:center;text-align:center;min-height:120px;padding:20px 30px;flex:0 0 auto;width:auto}.card-24{--glow-color:rgba(128,0,255,0.35);background:linear-gradient(145deg,#1a0a2a,#0a0a1a);justify-content:center;text-align:center;min-height:120px;padding:20px 30px;flex:0 0 auto;width:auto}.card-25{--glow-color:rgba(192,192,192,0.65);background:linear-gradient(145deg,#333333,#1a1a1a);justify-content:center;text-align:center;min-height:120px;padding:20px 30px;flex:0 0 auto;width:auto}.card-26{background:linear-gradient(to bottom,#14002b,#3a3a3a);justify-content:center;text-align:center;min-height:120px;padding:20px 30px;flex:0 0 auto;width:auto}.card-26::before{display:none}.card-31{--glow-color:rgba(255,0,0,0.35);flex:0 0 auto;width:auto}.card-32{--glow-color:rgba(0,128,255,0.35);flex:0 0 auto;width:auto}.card-33{--glow-color:rgba(0,255,128,0.35);flex:0 0 auto;width:auto}.card-34{--glow-color:rgba(128,0,255,0.35);flex:0 0 auto;width:auto}.card-35{--glow-color:rgba(192,192,192,0.65);flex:0 0 auto;width:auto}.card-36{--glow-color:rgba(128,0,255,0.35);--glow-color-2:rgba(192,192,192,0.65);position:relative;flex:0 0 auto;width:auto}.card-36::before{content:'';position:absolute;top:0;left:0;right:0;height:60%;background:linear-gradient(to bottom,var(--glow-color),transparent);pointer-events:none;z-index:0;transition:opacity .3s}.card-36::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,var(--glow-color-2),transparent);pointer-events:none;z-index:0;transition:opacity .3s}.card-41{--glow-color:rgba(255,0,0,0.35);flex:1 1 auto}.card-42{--glow-color:rgba(0,128,255,0.35);flex:1 1 auto}.card-43{--glow-color:rgba(0,255,128,0.35);flex:1 1 auto}.card-44{--glow-color:rgba(128,0,255,0.35);flex:1 1 auto}.card-45{--glow-color:rgba(192,192,192,0.65);flex:1 1 auto}.card-46{--glow-color:rgba(128,0,255,0.35);--glow-color-2:rgba(192,192,192,0.65);position:relative;flex:1 1 auto}.card-46::before{content:'';position:absolute;top:0;left:0;right:0;height:60%;background:linear-gradient(to bottom,var(--glow-color),transparent);pointer-events:none;z-index:0;transition:opacity .3s}.card-46::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,var(--glow-color-2),transparent);pointer-events:none;z-index:0;transition:opacity .3s}.search-container{padding:2rem;background:#1a1a1a;border-radius:12px;margin:.5rem auto;width:80%;max-width:1200px;position:relative}.search-box{display:flex;gap:1rem;max-width:250px;width:100%;align-items:center;position:relative;margin:0 auto}#searchInput{flex:1;width:250px;height:42px;padding:0 15px;background:#000;border:2px solid #333;border-radius:8px;color:#FFF;font-size:14px;transition:all .3s}#searchInput:hover,#searchInput:focus{outline:0;border-color:#1e90ff;box-shadow:0 0 12px rgba(30,144,255,0.5)}.search-btn{height:42px;min-width:80px;padding:0 12px;background:#1a1a1a;border:2px solid #333;border-radius:8px;color:#FFF;font-size:14px;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;white-space:nowrap}.search-btn:hover{background:#1e90ff;border-color:#1e90ff;box-shadow:0 0 12px rgba(30,144,255,0.4)}.reset-btn{height:42px;min-width:42px;padding:0 12px;background:#1a1a1a;border:2px solid #333;border-radius:8px;color:#FFF;font-size:14px;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center}.reset-btn:hover{background:#1e90ff;border-color:#1e90ff;box-shadow:0 0 12px rgba(30,144,255,0.4)}.reset-btn i{color:#FFF}.suggestions{position:absolute;width:250px;max-height:200px;overflow-y:auto;background:#1a1a1a;border:2px solid #333;border-radius:8px;display:none;z-index:1000;left:0;top:110%;margin-top:10px}.suggestion-item{padding:8px 12px;cursor:pointer;transition:background .3s;white-space:nowrap;text-align:left}.suggestion-item:hover{background:#1e90ff;color:#000}.highlight{color:#87cefa;font-weight:bold}.history-row{display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;justify-content:center}.history-btn{padding:6px 15px;background:#2a2a2a;border:1px solid transparent;border-radius:20px;color:#ccc;font-size:12px;cursor:pointer;transition:all .3s}.history-btn:hover{color:#1e90ff;border-color:#1e90ff;background:rgba(30,144,255,0.1);box-shadow:0 0 8px rgba(30,144,255,0.3)}.clear-history-btn{color:#FF5555!important;border-color:#FF5555!important}.clear-history-btn:hover{background:rgba(255,85,85,0.1)!important}.divider{height:1px;background:#333;margin:.5rem auto;width:80%}.expandable-section{background:#1a1a1a;border-radius:12px;margin:1rem auto;width:80%;overflow:hidden}.expand-header{padding:16px;background:#000;cursor:pointer;display:flex;justify-content:space-between;align-items:center}.expand-content{padding:0 16px;max-height:0;transition:max-height .3s ease-out}.arrow{transition:transform .3s,color .3s;color:gray}.expand-header:hover .arrow{color:#1e90ff}.expanded .arrow{transform:rotate(180deg)}footer{background:#1a1a1a;padding:1.5rem;text-align:center;margin-top:auto}.btn-style-2{background:0;border:0;color:#fff;cursor:pointer;padding:4px 8px;margin-left:8px;transition:all .3s;position:relative}.btn-style-2::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:2px;background:#1e90ff;transition:width .3s}.btn-style-2:hover{color:#1e90ff;background:rgba(30,144,255,0.1)}.btn-style-2:hover::after{width:100%}.btn-style-2.active{color:#1e90ff}.btn-style-2.active::after{width:100%}.btn-style-2.all-btn{font-weight:bold}.btn-style-2.all-btn.active{cursor:default}.category-row{display:flex;align-items:center;justify-content:flex-start;padding:12px 0;border-bottom:1px solid #333;position:relative}.category-row:last-child{border-bottom:0}.category-row span{position:relative;padding-right:15px}.category-row span::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:1px;height:20px;background:#333}.category-actions{margin-left:50px;display:flex;gap:8px;flex-wrap:wrap}.back-to-top{position:fixed;right:100px;bottom:100px;width:50px;height:50px;border-radius:50%;background:rgba(30,144,255,0.7);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;opacity:0;visibility:hidden;z-index:999}.back-to-top:hover{background:rgba(30,144,255,1);opacity:.8}.back-to-top.show{opacity:.5;visibility:visible}.back-to-top i{font-size:20px}</style>
 </head>
 <body>
-    <!-- 欢迎弹窗 -->
-    <div class="welcome-modal" id="welcomeModal">
-        <div class="welcome-card">
-            <h2 class="welcome-title">帅总寄语</h2>
-            <p class="welcome-message">
-                这是本人首次制作网站，不足之处还望见谅<br>
-                目前仅开放link查询，欢迎大家提出宝贵建议<br><br>
-                黛米安联盟【低调集团】诚邀各位朋友加入！<br>
-		祝您游戏愉快，谢谢！
-            </p>
-            <button class="welcome-confirm" id="welcomeConfirm">确认</button>
-        </div>
-    </div>
-
-
-    <!-- 左侧边栏 -->
-    <div class="sidebar">
-        <ul class="sidebar-menu">
-            <li class="active">
-                <i class="fa fa-link" aria-hidden="true"></i>
-                <span>link查询</span>
-            </li>
-            <li>
-                <i class="fa fa-calendar" aria-hidden="true"></i>
-                <span>版本前瞻</span>
-                <span class="coming-soon">暂未开放</span>
-            </li>
-            <li>
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-                <span>数据分享</span>
-                <span class="coming-soon">暂未开放</span>
-            </li>
-            <li>
-                <i class="fa fa-video-camera" aria-hidden="true"></i>
-                <span>视频攻略</span>
-                <span class="coming-soon">暂未开放</span>
-            </li>
-            <li>
-                <i class="fa fa-users" aria-hidden="true"></i>
-                <span>集团合影</span>
-                <span class="coming-soon">暂未开放</span>
-            </li>
-        </ul>
-    </div>
-
-
-    <!-- 主内容区域 -->
-    <div class="main-content">
-        <!-- 页面标题 -->
-        <h1 class="page-title">低调集团欢迎您</h1>
-
-        <!-- 搜索区域 -->
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="请输入职业名称" autocomplete="off">
-                <button class="search-btn">搜索</button>
-                <button class="reset-btn" title="重置"><i class="fa fa-refresh fa-lg" aria-hidden="true"></i></button>
-                <div class="suggestions" id="suggestions"></div>
-            </div>
-            <div class="history-row" id="historyRow"></div>
-        </div>
-        <div class="divider"></div>
-
-        <!-- 职业筛选区域 -->
-        <div class="expandable-section">
-            <div class="expand-header" onclick="toggleExpand()">
-                <span>职业筛选</span>
-                <i class="fa fa-chevron-down arrow" aria-hidden="true"></i>
-            </div>
-            <div class="expand-content" id="expandContent">
-                <div class="category-row">
-                    <span><font size="4">职业类型</font></span>
-                    <div class="category-actions">
-                        <button class="btn-style-2 all-btn active" data-action="all1" data-category="type"><b><font size="4">全部</font></b></button>
-                        <button class="btn-style-2" data-action="zhanshi" data-category="type"><font size="4">战士</font></button>
-                        <button class="btn-style-2" data-action="fashi" data-category="type"><font size="4">法师</font></button>
-                        <button class="btn-style-2" data-action="gongshou" data-category="type"><font size="4">弓手</font></button>
-                        <button class="btn-style-2" data-action="feixia" data-category="type"><font size="4">飞侠</font></button>
-                        <button class="btn-style-2" data-action="haidao" data-category="type"><font size="4">海盗</font></button>
-                    </div>
-                </div>
-                <div class="category-row">
-                    <span><font size="4">职业阵营</font></span>
-                    <div class="category-actions">
-                        <button class="btn-style-2 all-btn active" data-action="all2" data-category="faction"><b><font size="3">全部</font></b></button>
-                        <button class="btn-style-2" data-action="maoxianjia" data-category="faction">冒险家</button>
-                        <button class="btn-style-2" data-action="qishituan" data-category="faction">骑士团</button>
-                        <button class="btn-style-2" data-action="yingxiong" data-category="faction">英雄</button>
-                        <button class="btn-style-2" data-action="fankongzhe" data-category="faction">反抗者</button>
-                        <button class="btn-style-2" data-action="noba" data-category="faction">诺巴</button>
-                        <button class="btn-style-2" data-action="chaoyuezhe" data-category="faction">超越者</button>
-                        <button class="btn-style-2" data-action="haoyoushijie" data-category="faction">好友世界</button>
-                        <button class="btn-style-2" data-action="yiren" data-category="faction">翼人</button>
-                        <button class="btn-style-2" data-action="anima" data-category="faction">阿尼玛</button>
-                        <button class="btn-style-2" data-action="xiaozhizhen" data-category="faction">晓之阵</button>
-                        <button class="btn-style-2" data-action="jianghu" data-category="faction">江湖</button>
-                    </div>
-                </div>
-                <div class="category-row">
-                    <span><font size="4">职业属性</font></span>
-                    <div class="category-actions">
-                        <button class="btn-style-2 all-btn active" data-action="all3" data-category="attribute"><b><font size="3">全部</font></b></button>
-                        <button class="btn-style-2" data-action="gongmo" data-category="attribute">攻击&魔力</button>
-                        <button class="btn-style-2" data-action="Bshang" data-category="attribute">Boss伤害</button>
-                        <button class="btn-style-2" data-action="baoshang" data-category="attribute">暴击伤害</button>
-                        <button class="btn-style-2" data-action="baoji" data-category="attribute">暴击率</button>
-                        <button class="btn-style-2" data-action="zengshang" data-category="attribute">提升伤害</button>
-                        <button class="btn-style-2" data-action="jinengcd" data-category="attribute">技能CD</button>
-                        <button class="btn-style-2" data-action="wushi" data-category="attribute">无视防御</button>
-                        <button class="btn-style-2" data-action="buffshijian" data-category="attribute">Buff时间</button>
-                        <button class="btn-style-2" data-action="jingyan" data-category="attribute">经验</button>
-                        <button class="btn-style-2" data-action="shoucang" data-category="attribute">收藏</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 卡片展示区域 -->
-        <div class="display-area">
-            <!-- 第1行 -->
-            <div class="card-row" data-occupation="英雄" data-type="zhanshi" data-faction="maoxianjia">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">英雄</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            力量+40/80/100<br>
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/1-3.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">不灭信念</div>
-                        <div class="description">
-                            血量低于15%时，3秒内每秒恢复血量23%/29%/35%，冷却370/290/210秒
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家战士link可叠加，只占用1个link栏位<br>
-                            buff持续增加、冷却重置、冷却减少均无效
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第2行 -->
-            <div class="card-row" data-occupation="圣骑士" data-type="zhanshi" data-faction="maoxianjia">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">圣骑士</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            力量+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/1-3.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">不灭信念</div>
-                        <div class="description">
-                            血量低于15%时，3秒内每秒恢复血量23%/29%/35%，冷却370/290/210秒
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家战士link可叠加，只占用1个link栏位<br>
-                            buff持续增加、冷却重置、冷却减少均无效
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第3行 -->
-            <div class="card-row" data-occupation="黑骑士" data-type="zhanshi" data-faction="maoxianjia">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">黑骑士</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            最大血量+4%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/1-3.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">不灭信念</div>
-                        <div class="description">
-                            血量低于15%时，3秒内每秒恢复血量23%/29%/35%，冷却370/290/210秒
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家战士link可叠加，只占用1个link栏位<br>
-                            buff持续增加、冷却重置、冷却减少均无效
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第4行 -->
-            <div class="card-row" data-occupation="火毒魔导师" data-type="fashi" data-faction="maoxianjia" data-attribute="zengshang,wushi">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">火毒魔导师</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            最大魔量+4%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/4-6.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">实战经验</div>
-                        <div class="description">
-                            攻击时17%/21%/25%概率对最大HP最高的敌人标记10秒<br>
-                            最多3次叠加，每层标记无视防御率+1%/2%/3%、伤害+1%2%/3%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家法师link可叠加，只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第5行 -->
-            <div class="card-row" data-occupation="冰雷魔导师" data-type="fashi" data-faction="maoxianjia" data-attribute="zengshang,wushi">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">冰雷魔导师</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            智力+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/4-6.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">实战经验</div>
-                        <div class="description">
-                            攻击时17%/21%/25%概率对最大HP最高的敌人标记10秒<br>
-                            最多3次叠加，每层标记无视防御率+1%/2%/3%、伤害+1%2%/3%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家法师link可叠加，只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第6行 -->
-            <div class="card-row" data-occupation="主教" data-type="fashi" data-faction="maoxianjia" data-attribute="zengshang,wushi">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">主教</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            智力+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/4-6.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">实战经验</div>
-                        <div class="description">
-                            攻击时17%/21%/25%概率对最大HP最高的敌人标记10秒<br>
-                            最多3次叠加，每层标记无视防御率+1%/2%/3%、伤害+1%2%/3%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家法师link可叠加，只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第7行 -->
-            <div class="card-row" data-occupation="神射手" data-type="gongshou" data-faction="maoxianjia" data-attribute="baoji,shoucang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-23">
-                    <div class="content">
-                        <div class="title"><font size="5">神射手</font></div>
-                    </div>
-                </div>
-                <div class="card card-33">
-                    <div class="content">
-                        <div class="description">
-                            敏捷+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-43">
-                    <img src="image/7-9.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">冒险求知欲</div>
-                        <div class="description">
-                            怪物收藏率+15%/25%/35%、暴击率+4%/7%/10%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家弓手link可叠加，只占用1个link栏位，怪物收藏率为乘法加成
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第8行 -->
-            <div class="card-row" data-occupation="箭神" data-type="gongshou" data-faction="maoxianjia" data-attribute="baoji,shoucang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-23">
-                    <div class="content">
-                        <div class="title"><font size="5">箭神</font></div>
-                    </div>
-                </div>
-                <div class="card card-33">
-                    <div class="content">
-                        <div class="description">
-                            暴击率+3%/4%/5%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-43">
-                    <img src="image/7-9.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">冒险求知欲</div>
-                        <div class="description">
-                            怪物收藏率+15%/25%/35%、暴击率+4%/7%/10%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家弓手link可叠加，只占用1个link栏位，怪物收藏率为乘法加成
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第9行 -->
-            <div class="card-row" data-occupation="古迹猎人" data-type="gongshou" data-faction="maoxianjia" data-attribute="baoji,shoucang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-23">
-                    <div class="content">
-                        <div class="title"><font size="5">古迹猎人</font></div>
-                    </div>
-                </div>
-                <div class="card card-33">
-                    <div class="content">
-                        <div class="description">
-                            敏捷+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-43">
-                    <img src="image/7-9.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">冒险求知欲</div>
-                        <div class="description">
-                            怪物收藏率+15%/25%/35%、暴击率+4%/7%/10%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家弓手link可叠加，只占用1个link栏位，怪物收藏率为乘法加成
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第10行 -->
-            <div class="card-row" data-occupation="隐士" data-type="feixia" data-faction="maoxianjia" data-attribute="baoji,zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-24">
-                    <div class="content">
-                        <div class="title"><font size="5">隐士</font></div>
-                    </div>
-                </div>
-                <div class="card card-34">
-                    <div class="content">
-                        <div class="description">
-                            暴击率+3%/4%/5%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-44">
-                    <img src="image/10-12.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">窃贼诡道</div>
-                        <div class="description">
-                            对敌人附加异常状态后10秒内自身伤害+6%/12%/18%，冷却20秒
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家飞侠link可叠加只占用1个link栏位<br>
-                            buff持续增加、冷却重置、冷却减少均无效、冷却从触发buff开始计算
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第11行 -->
-            <div class="card-row" data-occupation="侠盗" data-type="feixia" data-faction="maoxianjia" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-24">
-                    <div class="content">
-                        <div class="title"><font size="5">侠盗</font></div>
-                    </div>
-                </div>
-                <div class="card card-34">
-                    <div class="content">
-                        <div class="description">
-                            运气+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-44">
-                    <img src="image/10-12.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">窃贼诡道</div>
-                        <div class="description">
-                            对敌人附加异常状态后10秒内自身伤害+6%/12%/18%，冷却20秒
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家飞侠link可叠加只占用1个link栏位<br>
-                            buff持续增加、冷却重置、冷却减少均无效、冷却从触发buff开始计算
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第12行 -->
-            <div class="card-row" data-occupation="暗影双刀" data-type="feixia" data-faction="maoxianjia" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-24">
-                    <div class="content">
-                        <div class="title"><font size="5">暗影双刀</font></div>
-                    </div>
-                </div>
-                <div class="card card-34">
-                    <div class="content">
-                        <div class="description">
-                            运气+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-44">
-                    <img src="image/10-12.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">窃贼诡道</div>
-                        <div class="description">
-                            对敌人附加异常状态后10秒内自身伤害+6%/12%/18%，冷却20秒
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家飞侠link可叠加只占用1个link栏位<br>
-                            buff持续增加、冷却重置、冷却减少均无效，冷却从触发buff开始计算
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第13行 -->
-            <div class="card-row" data-occupation="冲锋队长" data-type="haidao" data-faction="maoxianjia">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">冲锋队长</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            力量+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/13-15.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">海盗祝福</div>
-                        <div class="description">
-                            全属性+30/50/70，最大血量和魔量+525/875/1225，伤害吸收+7%/11%/15%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家海盗link可叠加只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第14行 -->
-            <div class="card-row" data-occupation="船长" data-type="haidao" data-faction="maoxianjia" data-attribute="buffshijian">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">船长</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            召唤兽持续时间+8%/10%/12%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/13-15.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">海盗祝福</div>
-                        <div class="description">
-                            全属性+30/50/70，最大血量和魔量+525/875/1225，伤害吸收+7%/11%/15%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家海盗link可叠加只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第15行 -->
-            <div class="card-row" data-occupation="神炮王" data-type="haidao" data-faction="maoxianjia">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">冒险家</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">神炮王</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            力量+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/13-15.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">海盗祝福</div>
-                        <div class="description">
-                            全属性+30/50/70，最大血量和魔量+525/875/1225，伤害吸收+7%/11%/15%
-                        </div>
-                        <div class="footer-text">
-                            3种不同冒险家海盗link可叠加只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第16行 -->
-            <div class="card-row" data-occupation="米哈尔" data-type="zhanshi" data-faction="qishituan">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">骑士团</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">米哈尔</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            最大血量+1000/2000/2500
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/16.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">光之守护</div>
-                        <div class="description">
-                            15秒内异常状态抗性+100，冷却120秒
-                        </div>
-                        <div class="footer-text">
-                            link可以宠物自动释放
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第17行 -->
-            <div class="card-row" data-occupation="魂骑士" data-type="zhanshi" data-faction="qishituan" data-attribute="gongmo">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">骑士团</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">魂骑士</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            最大HP+1000/2000/2500
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/17-21.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">希纳斯护佑</div>
-                        <div class="description">
-                            物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
-                            异常状态抗性+3/6/9/12/15
-                        </div>
-                        <div class="footer-text">
-                            5种不同骑士团成员职业link可叠加只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第18行 -->
-            <div class="card-row" data-occupation="炎术士" data-type="fashi" data-faction="qishituan" data-attribute="gongmo">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">骑士团</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">炎术士</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            智力+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/17-21.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">希纳斯护佑</div>
-                        <div class="description">
-                            物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
-                            异常状态抗性+3/6/9/12/15
-                        </div>
-                        <div class="footer-text">
-                            5种不同骑士团成员职业link可叠加只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第19行 -->
-            <div class="card-row" data-occupation="风灵使者" data-type="gongshou" data-faction="qishituan" data-attribute="gongmo">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">骑士团</div>
-                    </div>
-                </div>
-                <div class="card card-23">
-                    <div class="content">
-                        <div class="title"><font size="5">风灵使者</font></div>
-                    </div>
-                </div>
-                <div class="card card-33">
-                    <div class="content">
-                        <div class="description">
-                            敏捷+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-43">
-                    <img src="image/17-21.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">希纳斯护佑</div>
-                        <div class="description">
-                            物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
-                            异常状态抗性+3/6/9/12/15
-                        </div>
-                        <div class="footer-text">
-                            5种不同骑士团成员职业link可叠加只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第20行 -->
-            <div class="card-row" data-occupation="夜行者" data-type="feixia" data-faction="qishituan" data-attribute="gongmo">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">骑士团</div>
-                    </div>
-                </div>
-                <div class="card card-24">
-                    <div class="content">
-                        <div class="title"><font size="5">夜行者</font></div>
-                    </div>
-                </div>
-                <div class="card card-34">
-                    <div class="content">
-                        <div class="description">
-                            运气+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-44">
-                    <img src="image/17-21.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">希纳斯护佑</div>
-                        <div class="description">
-                            物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
-                            异常状态抗性+3/6/9/12/15
-                        </div>
-                        <div class="footer-text">
-                            5种不同骑士团成员职业link可叠加只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 第21行 -->
-            <div class="card-row" data-occupation="奇袭者" data-type="haidao" data-faction="qishituan" data-attribute="gongmo">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">骑士团</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">奇袭者</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            力量+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/17-21.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">希纳斯护佑</div>
-                        <div class="description">
-                            物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
-                            异常状态抗性+3/6/9/12/15
-                        </div>
-                        <div class="footer-text">
-                            5种不同骑士团成员职业link可叠加只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第22行 -->
-            <div class="card-row" data-occupation="战神" data-type="zhanshi" data-faction="yingxiong" data-attribute="jingyan">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">英雄</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">战神</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            攻击时70%概率恢复血量6%/8%/10%，<br>
-                            连续触发时效果翻倍概率下降连续触发失败时冷却10秒<br>
-                            杀敌时获得1%经验值，持续30秒，冷却10秒
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/22.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">连击优势</div>
-                        <div class="description">
-                            连击宝珠经验+650%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第23行 -->
-            <div class="card-row" data-occupation="龙神" data-type="fashi" data-faction="yingxiong" data-attribute="jingyan">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">英雄</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">龙神</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            攻击时70%概率恢复魔量6%/8%/10%<br>
-                            连续触发时效果翻倍概率下降，连续触发失败时冷却10秒<br>
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/23.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">符文延续</div>
-                        <div class="description">
-                            解放符文时双倍经验buff持续时间+50%
-                        </div>
-                        <div class="footer-text">
-                            link只对双倍经验buff有效，符文特有的效果无效
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第24行 -->
-            <div class="card-row" data-occupation="夜光法师" data-type="fashi" data-faction="yingxiong" data-attribute="wushi">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">英雄</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">夜光法师</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            智力+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/24.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">穿透</div>
-                        <div class="description">
-                            无视防御率+15%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第25行 -->
-            <div class="card-row" data-occupation="双弩精灵" data-type="gongshou" data-faction="yingxiong" data-attribute="jinengcd,jingyan">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">英雄</div>
-                    </div>
-                </div>
-                <div class="card card-23">
-                    <div class="content">
-                        <div class="title"><font size="5">双弩精灵</font></div>
-                    </div>
-                </div>
-                <div class="card card-33">
-                    <div class="content">
-                        <div class="description">
-                            技能冷却时间-4%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-43">
-                    <img src="image/25.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">精灵的祝福</div>
-                        <div class="description">
-                            经验值获得量+15%
-                        </div>
-                        <div class="footer-text">
-                            link使用时可以回到埃欧雷冷却1800秒
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第26行 -->
-            <div class="card-row" data-occupation="幻影" data-type="feixia" data-faction="yingxiong" data-attribute="baoji">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">英雄</div>
-                    </div>
-                </div>
-                <div class="card card-24">
-                    <div class="content">
-                        <div class="title"><font size="5">幻影</font></div>
-                    </div>
-                </div>
-                <div class="card card-34">
-                    <div class="content">
-                        <div class="description">
-                            金币获得量+3%/4%/5%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-44">
-                    <img src="image/26.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">致命本能</div>
-                        <div class="description">
-                            暴击率+15%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第27行 -->
-            <div class="card-row" data-occupation="隐月" data-type="haidao" data-faction="yingxiong" data-attribute="baoshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">英雄</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">隐月</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            暴击伤害+3%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/27.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">九死一生</div>
-                        <div class="description">
-                            受到致命攻击时10%概率不死
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第28行 -->
-            <div class="card-row" data-occupation="恶魔猎手,红毛" data-type="zhanshi" data-faction="fankangzhe" data-attribute="Bshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">反抗者</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">恶魔猎手</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            异常状态抗性+3/4/5
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/28.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">恶魔之怒</div>
-                        <div class="description">
-                            boss伤害+15%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第29行 -->
-            <div class="card-row" data-occupation="恶魔复仇者,白毛" data-type="zhanshi" data-faction="fankangzhe" data-attribute="Bshang,zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">反抗者</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">恶魔复仇者</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            boss伤害+3%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/29.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">野性狂怒</div>
-                        <div class="description">
-                            伤害+10%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第30行 -->
-            <div class="card-row" data-occupation="爆破手" data-type="zhanshi" data-faction="fankangzhe" data-attribute="wushi">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">反抗者</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">爆破手</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            无视防御率+3%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/30-33.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">自由化身</div>
-                        <div class="description">
-                            复活后2/4/6/8秒内不受伤害
-                        </div>
-                        <div class="footer-text">
-                            4种不同反抗者原生职业link可叠加，只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第31行 -->
-            <div class="card-row" data-occupation="唤灵斗师,脚气,脚气师" data-type="fashi" data-faction="fankangzhe">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">反抗者</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">唤灵斗师</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            智力+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/30-33.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">自由化身</div>
-                        <div class="description">
-                            复活后2/4/6/8秒内不受伤害
-                        </div>
-                        <div class="footer-text">
-                            4种不同反抗者原生职业link可叠加，只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第32行 -->
-            <div class="card-row" data-occupation="豹弩游侠,豹子" data-type="gongshou" data-faction="fankangzhe" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">反抗者</div>
-                    </div>
-                </div>
-                <div class="card card-23">
-                    <div class="content">
-                        <div class="title"><font size="5">豹弩游侠</font></div>
-                    </div>
-                </div>
-                <div class="card card-33">
-                    <div class="content">
-                        <div class="description">
-                            攻击时20%概率伤害+12%/16%/20%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-43">
-                    <img src="image/30-33.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">自由化身</div>
-                        <div class="description">
-                            复活后2/4/6/8秒内不受伤害
-                        </div>
-                        <div class="footer-text">
-                            4种不同反抗者原生职业link可叠加，只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第33行 -->
-            <div class="card-row" data-occupation="机械师,轮椅,轮椅师" data-type="haidao" data-faction="fankangzhe" data-attribute="buffshijian">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">反抗者</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">机械师</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            buff持续时间+15%/20%/25%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/30-33.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">自由化身</div>
-                        <div class="description">
-                            复活后2/4/6/8秒内不受伤害
-                        </div>
-                        <div class="footer-text">
-                            4种不同反抗者原生职业link可叠加，只占用1个link栏位
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第34行 -->
-            <div class="card-row" data-occupation="尖兵" data-type="feixia,haidao" data-faction="fankangzhe">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">反抗者</div>
-                    </div>
-                </div>
-                <div class="card card-26">
-                    <div class="content">
-                        <div class="title"><font size="5">尖兵</font></div>
-                    </div>
-                </div>
-                <div class="card card-36">
-                    <div class="content">
-                        <div class="description">
-                            力量、敏捷、运气+20/40/50
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-46">
-                    <img src="image/34.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">混合逻辑</div>
-                        <div class="description">
-                            全属性+10%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第35行 -->
-            <div class="card-row" data-occupation="狂龙战士" data-type="zhanshi" data-faction="noba">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">诺巴</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">狂龙战士</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            力量+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/35.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">钢铁之墙</div>
-                        <div class="description">
-                            最大HP +15%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第36行 -->
-            <div class="card-row" data-occupation="炼狱黑客" data-type="gongshou" data-faction="noba" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">诺巴</div>
-                    </div>
-                </div>
-                <div class="card card-23">
-                    <div class="content">
-                        <div class="title"><font size="5">炼狱黑客</font></div>
-                    </div>
-                </div>
-                <div class="card card-33">
-                    <div class="content">
-                        <div class="description">
-                            敏捷+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-43">
-                    <img src="image/36.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">率先战斗准备</div>
-                        <div class="description">
-                            每杀死8只怪物或攻击5次boss叠加1层<br>
-                            每叠加5层时，20秒内伤害+17%，冷却40秒
-                        </div>
-                        <div class="footer-text">
-                            link冷却期间无法计数，buff持续增加，冷却重置，冷却减少均无效<br>
-                            冷却从触发buff开始计算
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第37行 -->
-            <div class="card-row" data-occupation="魔链影士" data-type="feixia" data-faction="noba" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">诺巴</div>
-                    </div>
-                </div>
-                <div class="card card-24">
-                    <div class="content">
-                        <div class="title"><font size="5">魔链影士</font></div>
-                    </div>
-                </div>
-                <div class="card card-34">
-                    <div class="content">
-                        <div class="description">
-                            运气+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-44">
-                    <img src="image/37.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">强力侮辱</div>
-                        <div class="description">
-                            等级低于角色的怪物伤害+6%、陷入异常状态的怪物伤害+6%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第38行 -->
-            <div class="card-row" data-occupation="爆莉萌天使" data-type="haidao" data-faction="noba" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">诺巴</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">爆莉萌天使</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            敏捷+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/38.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">灵魂契约</div>
-                        <div class="description">
-                            10秒内伤害+45%，冷却90秒
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第39行 -->
-            <div class="card-row" data-occupation="神之子" data-type="zhanshi" data-faction="chaoyuezhe" data-attribute="jingyan,wushi">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">超越者</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">神之子</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            经验值获得量+8%/10%/12%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/39.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">伦娜的祝福</div>
-                        <div class="description">
-                            伤害吸收+15%、无视防御率+10%
-                        </div>
-                        <div class="footer-text">
-                            link为5级数据需要完成178级剧情，角色卡在180级而非140级达到S
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第40行 -->
-            <div class="card-row" data-occupation="超能力者" data-type="fashi" data-faction="haoyoushijie" data-attribute="baoshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">好友世界</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">超能力者</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            智力+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/40.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">判断</div>
-                        <div class="description">
-                            暴击伤害+4%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第41行 -->
-            <div class="card-row" data-occupation="御剑骑士,阿黛尔,阿呆" data-type="zhanshi" data-faction="yiren" data-attribute="Bshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">翼人</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">御剑骑士</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            力量+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/41.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">初心者</div>
-                        <div class="description">
-                            boss伤害+4%，同一地图每有1名队友 自身伤害+2%最多4次叠加
-                        </div>
-                        <div class="footer-text">
-                            没有组队时视作单人组队
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第42行 -->
-            <div class="card-row" data-occupation="圣晶使徒,黑皮" data-type="fashi" data-faction="yiren" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">翼人</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">圣晶使徒</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            智力+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/42.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">持续战役</div>
-                        <div class="description">
-                            每移动一定距离伤害+3%，持续时间10秒最多4次叠加
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第43行 -->
-            <div class="card-row" data-occupation="飞刃沙士,卡莉" data-type="feixia" data-faction="yiren" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">翼人</div>
-                    </div>
-                </div>
-                <div class="card card-24">
-                    <div class="content">
-                        <div class="title"><font size="5">飞刃沙士</font></div>
-                    </div>
-                </div>
-                <div class="card card-34">
-                    <div class="content">
-                        <div class="description">
-                            运气+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-44">
-                    <img src="image/43.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">生来天赋</div>
-                        <div class="description">
-                            伤害+5%，攻击时100%概率5秒内每秒恢复最大血量和魔量 2%，冷却30秒
-                        </div>
-                        <div class="footer-text">
-                            攻击需命中怪物，召唤物攻击不计入<br>
-                            buff持续增加、冷却重置、冷却减少均无效，冷却从触发buff开始计算
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第44行 -->
-            <div class="card-row" data-occupation="影魂异人,亚克" data-type="haidao" data-faction="yiren" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">翼人</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">影魂异人</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            力量+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/44.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">无我之境</div>
-                        <div class="description">
-                            每保持战斗状态5秒伤害+2%，<br>
-                            持续时间5秒最多5次叠加，首次叠加时额外伤害+1%
-                        </div>
-                        <div class="footer-text">
-                            召唤物不计入战斗状态
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第45行 -->
-            <div class="card-row" data-occupation="元素师,拉拉" data-type="fashi" data-faction="anima" data-attribute="zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">阿尼玛</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">元素师</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            智力+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/45.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">大自然的伙伴</div>
-                        <div class="description">
-                            伤害+5%，<br>
-                            每杀死20只普通怪物，30秒内普通怪物伤害+11%，冷却30秒
-                        </div>
-                        <div class="footer-text">
-                            link冷却期间无法计数，冷却从触发buff开始计算
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第46行 -->
-            <div class="card-row" data-occupation="虎影" data-type="feixia" data-faction="anima" data-attribute="zengshang,wushi">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">阿尼玛</div>
-                    </div>
-                </div>
-                <div class="card card-24">
-                    <div class="content">
-                        <div class="title"><font size="5">虎影</font></div>
-                    </div>
-                </div>
-                <div class="card card-34">
-                    <div class="content">
-                        <div class="description">
-                            运气+40/80/100
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-44">
-                    <img src="image/46.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">自信感</div>
-                        <div class="description">
-                            无视防御率+10%，对100%HP敌人伤害+14%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第47行 -->
-            <div class="card-row" data-occupation="剑豪" data-type="zhanshi" data-faction="xiaozhizhen" data-attribute="baoshang,gongmo">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">晓之阵</div>
-                    </div>
-                </div>
-                <div class="card card-21">
-                    <div class="content">
-                        <div class="title"><font size="5">剑豪</font></div>
-                    </div>
-                </div>
-                <div class="card card-31">
-                    <div class="content">
-                        <div class="description">
-                            暴击伤害+3%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-41">
-                    <img src="image/47.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">疾风传授</div>
-                        <div class="description">
-                            全属性+25,攻击力和魔力+15
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第48行 -->
-            <div class="card-row" data-occupation="阴阳师" data-type="fashi" data-faction="xiaozhizhen" data-attribute="Bshang,zengshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">晓之阵</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">阴阳师</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            boss伤害+3%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/48.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">紫扇传授</div>
-                        <div class="description">
-                            伤害+10%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第49行 -->
-            <div class="card-row" data-occupation="琳,林之灵,森林小主" data-type="fashi" data-faction="jianghu" data-attribute="Bshang,baoji,wushi">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">江湖</div>
-                    </div>
-                </div>
-                <div class="card card-22">
-                    <div class="content">
-                        <div class="title"><font size="5">琳</font></div>
-                    </div>
-                </div>
-                <div class="card card-32">
-                    <div class="content">
-                        <div class="description">
-                            无视防御率+3%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-42">
-                    <img src="image/49.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">精灵集中</div>
-                        <div class="description">
-                            boss伤害+7%、暴击率+7%、最大血量+4%、最大魔量+4%
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 第50行 -->
-            <div class="card-row" data-occupation="墨玄,武神,龙人,龙的传人" data-type="haidao" data-faction="jianghu" data-attribute="Bshang,baoshang">
-                <div class="card card-10">
-                    <div class="content">
-                        <div class="title">江湖</div>
-                    </div>
-                </div>
-                <div class="card card-25">
-                    <div class="content">
-                        <div class="title"><font size="5">墨玄</font></div>
-                    </div>
-                </div>
-                <div class="card card-35">
-                    <div class="content">
-                        <div class="description">
-                            暴击伤害+3%/5%/6%
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-45">
-                    <img src="image/50.png" alt="示例图片">
-                    <div class="content">
-                        <div class="title">气魄</div>
-                        <div class="description">
-                            boss伤害+4%，每次攻击boss时boss伤害+2%<br>
-                            每2秒可叠加1次，持续时间5秒最多6次叠加
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> 
-            
-        <!-- 返回顶部按钮 -->
-        <div class="back-to-top" id="backToTop">
-            <i class="fa fa-long-arrow-up fa-lg" aria-hidden="true"></i>
-        </div>
-
-        <!-- 页脚 -->
-        <footer>
-            <p>© 2025 角色卡&link查询 by 低调集团 帅总</p>
-        </footer>
-    </div>
-
-    <script>
-        // 职业数据库
-        const occupations = [
-            "英雄", "圣骑士", "黑骑士", "火毒魔导师", "冰雷魔导师",
-            "主教", "神射手", "箭神", "古迹猎人", "隐士",
-            "侠盗", "暗影双刀", "冲锋队长", "船长", "神炮王",
-            "米哈尔", "魂骑士", "炎术士", "风灵使者", "夜行者",
-            "奇袭者", "战神", "龙神", "夜光法师", "双弩精灵",
-            "幻影", "隐月", "恶魔猎手", "恶魔复仇者", "爆破手",
-            "唤灵斗师", "豹弩游侠", "机械师", "尖兵", "狂龙战士",
-            "炼狱黑客", "魔链影士", "爆莉萌天使", "神之子", "超能力者",
-            "御剑骑士", "圣晶使徒", "飞刃沙士", "影魂异人", "元素师",
-            "虎影", "剑豪", "阴阳师", "琳", "墨玄"
-        ];
-
-        // 欢迎弹窗功能
-        const welcomeModal = document.getElementById('welcomeModal');
-        const welcomeConfirm = document.getElementById('welcomeConfirm');
-        
-        // 页面加载后显示欢迎弹窗
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                welcomeModal.classList.add('show');
-            }, 500); // 延迟500ms显示，避免与页面加载动画冲突
-        });
-        
-        // 点击确认按钮关闭弹窗
-        welcomeConfirm.addEventListener('click', function() {
-            welcomeModal.classList.remove('show');
-        });
-
-        // 智能提示功能
-        const searchInput = document.getElementById('searchInput');
-        const suggestions = document.getElementById('suggestions');
-        searchInput.addEventListener('input', function() {
-            const inputText = this.value.trim().replace(/\s+/g, '');
-            if (inputText.length === 0) {
-                suggestions.style.display = 'none';
-                return;
-            }
-            const matched = occupations.filter(item => 
-                item.toLowerCase().includes(inputText.toLowerCase())
-            );
-            showSuggestions(matched);
-        });
-        function showSuggestions(items) {
-            suggestions.innerHTML = items.map(item => `
-                <div class="suggestion-item">${highlightMatch(item)}</div>
-            `).join('');
-            suggestions.style.display = items.length ? 'block' : 'none';
-        }
-        function highlightMatch(text) {
-            const query = searchInput.value.trim().toLowerCase();
-            const index = text.toLowerCase().indexOf(query);
-            if (index === -1) return text;
-            return `
-                ${text.slice(0, index)}
-                <span class="highlight">
-                    ${text.slice(index, index + query.length)}
-                </span>
-                ${text.slice(index + query.length)}
-            `.replace(/\s+/g, '');
-        }
-        suggestions.addEventListener('click', (e) => {
-            const selectedItem = e.target.closest('.suggestion-item');
-            if (selectedItem) {
-                const textContent = selectedItem.textContent || selectedItem.innerText;
-                searchInput.value = textContent.replace(/\s+/g, '');
-                suggestions.style.display = 'none';
-            }
-        });
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-container')) {
-                suggestions.style.display = 'none';
-            }
-        });
-
-        // 历史记录功能
-        const MAX_HISTORY = 5;
-        const historyRow = document.getElementById('historyRow');
-        let searchHistory = JSON.parse(localStorage.getItem('careerSearchHistory')) || [];
-        function updateHistoryDisplay() {
-            historyRow.innerHTML = '';
-            const showHistory = searchHistory.slice(0, MAX_HISTORY);
-            showHistory.forEach(item => {
-                const btn = document.createElement('button');
-                btn.className = 'history-btn';
-                btn.textContent = item;
-                btn.onclick = () => {
-                    searchInput.value = item;
-                    performSearch();
-                };
-                historyRow.appendChild(btn);
-            });
-            if(searchHistory.length > 0) {
-                const clearBtn = document.createElement('button');
-                clearBtn.className = 'history-btn clear-history-btn';
-                clearBtn.textContent = '清除记录';
-                clearBtn.onclick = () => {
-                    searchHistory = [];
-                    localStorage.setItem('careerSearchHistory', JSON.stringify(searchHistory));
-                    updateHistoryDisplay();
-                };
-                historyRow.appendChild(clearBtn);
-            }
-        }
-
-        // 伸缩区域功能
-        function toggleExpand(forceCollapse = false) {
-            const content = document.getElementById('expandContent');
-            const icon = document.querySelector('.expand-header .arrow');
-            
-            if (forceCollapse) {
-                content.style.maxHeight = null;
-                icon.style.transform = 'rotate(0deg)';
-                return;
-            }
-            
-            content.style.maxHeight = content.style.maxHeight ? 
-                null : `${content.scrollHeight}px`;
-            icon.style.transform = content.style.maxHeight ? 'rotate(180deg)' : 'rotate(0deg)';
-        }
-
-        // 按钮交互效果 - 修复后的版本，支持多条件筛选
-        document.querySelectorAll('.btn-style-2').forEach(button => {
-            button.addEventListener('click', function() {
-                const categoryRow = this.closest('.category-row');
-                const category = this.dataset.category;
-                const action = this.dataset.action;
-                
-                // 如果是搜索后首次点击筛选按钮，取消搜索
-                if (searchInput.value.trim()) {
-                    searchInput.value = '';
-                    resetAllFilters(true); // 传入true表示不重置筛选条件
-                }
-                
-                // 如果是"全部"按钮
-                if (this.classList.contains('all-btn')) {
-                    // 重置该分类的所有按钮状态
-                    categoryRow.querySelectorAll(`.btn-style-2[data-category="${category}"]:not(.all-btn)`)
-                        .forEach(btn => btn.classList.remove('active'));
-                    
-                    // 激活"全部"按钮
-                    this.classList.add('active');
-                } 
-                // 如果是普通按钮
-                else {
-                    // 取消"全部"按钮的激活状态
-                    const allBtn = categoryRow.querySelector('.all-btn');
-                    allBtn.classList.remove('active');
-                    
-                    // 切换当前按钮的激活状态
-                    this.classList.toggle('active');
-                    
-                    // 如果该分类下没有激活的按钮，则激活"全部"按钮
-                    const hasActive = categoryRow.querySelector(`.btn-style-2[data-category="${category}"].active:not(.all-btn)`);
-                    if (!hasActive) {
-                        allBtn.classList.add('active');
-                    }
-                }
-                
-                // 点击筛选按钮时保持筛选区域展开
-                const content = document.getElementById('expandContent');
-                if (content.style.maxHeight === '0px' || !content.style.maxHeight) {
-                    toggleExpand();
-                }
-                
-                filterCards(); // 点击筛选按钮后立即筛选
-            });
-        });
-
-        // 重置所有筛选条件
-        function resetAllFilters(keepFilters = false) {
-            // 清空搜索框
-            searchInput.value = '';
-            
-            // 如果不保留筛选条件，重置所有筛选按钮
-            if (!keepFilters) {
-                document.querySelectorAll('.btn-style-2.all-btn').forEach(btn => {
-                    btn.classList.add('active');
-                });
-                document.querySelectorAll('.btn-style-2:not(.all-btn)').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-            }
-            
-            // 执行筛选
-            filterCards();
-        }
-
-        // 搜索功能 - 修改后的版本，确保搜索时激活所有"全部"按钮
-        function performSearch() {
-            const query = searchInput.value.trim().replace(/\s+/g, '');
-            
-            if (query) {
-                // 添加到历史记录
-                searchHistory = [query, ...searchHistory.filter(item => item !== query)]
-                    .slice(0, MAX_HISTORY);
-                localStorage.setItem('careerSearchHistory', JSON.stringify(searchHistory));
-                updateHistoryDisplay();
-                
-                // 执行搜索前激活所有"全部"按钮
-                document.querySelectorAll('.btn-style-2.all-btn').forEach(btn => {
-                    btn.classList.add('active');
-                });
-                // 并取消所有其他按钮的激活状态
-                document.querySelectorAll('.btn-style-2:not(.all-btn)').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // 收起筛选区域
-                toggleExpand(true);
-                
-                // 执行搜索
-                filterCards();
-            } else {
-                // 如果没有搜索词，显示所有卡片
-                document.querySelectorAll('.card-row').forEach(row => {
-                    row.style.display = 'flex';
-                });
-                
-                // 移除无结果提示
-                const noResultsMsg = document.getElementById('noResultsMessage');
-                if (noResultsMsg) {
-                    noResultsMsg.remove();
-                }
-            }
-        }
-
-        // 筛选功能
-        function filterCards() {
-            const searchQuery = searchInput.value.trim().toLowerCase();
-            const activeButtons = document.querySelectorAll('.btn-style-2.active:not(.all-btn)');
-            
-            // 收集筛选条件
-            const filterCategories = {
-                type: [],
-                faction: [],
-                attribute: []
-            };
-            
-            activeButtons.forEach(button => {
-                const category = button.dataset.category;
-                const action = button.dataset.action;
-                
-                if (category === 'type') {
-                    filterCategories.type.push(action);
-                } else if (category === 'faction') {
-                    filterCategories.faction.push(action);
-                } else if (category === 'attribute') {
-                    filterCategories.attribute.push(action);
-                }
-            });
-            
-            // 检查是否有任何筛选条件被激活
-            const hasTypeFilter = filterCategories.type.length > 0;
-            const hasFactionFilter = filterCategories.faction.length > 0;
-            const hasAttributeFilter = filterCategories.attribute.length > 0;
-            
-            const cardRows = document.querySelectorAll('.card-row');
-            let hasVisibleCards = false;
-            
-            cardRows.forEach(row => {
-                let shouldShow = true;
-                
-                // 1. 检查职业名称搜索
-                if (searchQuery) {
-                    const occupation = row.dataset.occupation.toLowerCase();
-                    if (!occupation.includes(searchQuery)) {
-                        shouldShow = false;
-                    }
-                }
-                
-                // 2. 检查筛选条件
-                if (shouldShow && !searchQuery) {
-                    // 检查职业类型
-                    if (hasTypeFilter && !filterCategories.type.includes(row.dataset.type)) {
-                        shouldShow = false;
-                    }
-                    // 检查职业阵营
-                    if (hasFactionFilter && !filterCategories.faction.includes(row.dataset.faction)) {
-                        shouldShow = false;
-                    }
-                    // 检查职业属性
-                    if (hasAttributeFilter) {
-                        const rowAttributes = row.dataset.attribute ? row.dataset.attribute.split(',') : [];
-                        const hasMatchingAttribute = filterCategories.attribute.some(attr => 
-                            rowAttributes.includes(attr)
-                        );
-                        if (!hasMatchingAttribute) {
-                            shouldShow = false;
-                        }
-                    }
-                }
-                
-                row.style.display = shouldShow ? 'flex' : 'none';
-                if (shouldShow) hasVisibleCards = true;
-            });
-            
-            // 如果没有匹配的卡片，显示提示
-            const noResultsMsg = document.getElementById('noResultsMessage');
-            if (!hasVisibleCards) {
-                if (!noResultsMsg) {
-                    const msg = document.createElement('div');
-                    msg.id = 'noResultsMessage';
-                    msg.style.textAlign = 'center';
-                    msg.style.padding = '20px';
-                    msg.style.color = '#ccc';
-                    msg.textContent = '没有找到匹配的职业卡片';
-                    document.querySelector('.display-area').prepend(msg);
-                }
-            } else if (noResultsMsg) {
-                noResultsMsg.remove();
-            }
-            
-            // 使用优化后的列宽调整方法
-            requestAnimationFrame(optimizedAdjustColumnWidths);
-        }
-
-        // 返回顶部功能
-        const backToTop = document.getElementById('backToTop');
-        function toggleBackToTop() {
-            if (window.pageYOffset > 300) {
-                backToTop.classList.add('show');
-            } else {
-                backToTop.classList.remove('show');
-            }
-        }
-        backToTop.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-        window.addEventListener('scroll', toggleBackToTop);
-
-        // 初始化历史记录
-        updateHistoryDisplay();
-
-        // 页面加载完成后调整列宽
-        window.addEventListener('load', function() {
-            requestAnimationFrame(optimizedAdjustColumnWidths);
-        });
-
-        // 优化后的列宽调整函数 - 使用requestAnimationFrame提高性能
-        function optimizedAdjustColumnWidths() {
-            const visibleRows = Array.from(document.querySelectorAll('.card-row'))
-                .filter(row => row.style.display !== 'none');
-            
-            if (visibleRows.length === 0) return;
-            
-            // 使用requestAnimationFrame确保在浏览器重绘前执行
-            requestAnimationFrame(() => {
-                // 获取所有可见行中每列的最大宽度
-                const maxWidths = [0, 0, 0];
-                
-                // 第一轮遍历：计算最大宽度
-                visibleRows.forEach(row => {
-                    const cards = row.querySelectorAll('.card');
-                    cards.forEach((card, index) => {
-                        if (index < 3) { // 只处理前3列
-                            // 使用getBoundingClientRect获取精确宽度
-                            const width = card.getBoundingClientRect().width;
-                            if (width > maxWidths[index]) {
-                                maxWidths[index] = width;
-                            }
-                        }
-                    });
-                });
-                
-                // 第二轮遍历：应用最大宽度
-                visibleRows.forEach(row => {
-                    const cards = row.querySelectorAll('.card');
-                    cards.forEach((card, index) => {
-                        if (index < 3) { // 只处理前3列
-                            card.style.minWidth = `${maxWidths[index]}px`;
-                        } else if (index === 3) { // 第4列填满剩余空间
-                            card.style.minWidth = '0';
-                            card.style.flex = '1 1 auto';
-                        }
-                    });
-                });
-            });
-        }
-
-        // 绑定搜索按钮事件
-        document.querySelector('.search-btn').addEventListener('click', performSearch);
-
-        // 绑定重置按钮事件
-        document.querySelector('.reset-btn').addEventListener('click', () => resetAllFilters(false));
-
-        // 绑定回车键搜索
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-    </script>
+<div class=welcome-modal id=welcomeModal>
+<div class=welcome-card>
+<h2 class=welcome-title>帅总寄语</h2>
+<p class=welcome-message>
+这是本人首次制作网站，不足之处还望见谅<br>
+目前仅开放link查询，欢迎大家提出宝贵建议<br><br>
+黛米安联盟【低调集团】诚邀各位朋友加入！<br>
+祝您游戏愉快，谢谢！
+</p>
+<button class=welcome-confirm id=welcomeConfirm>确认</button>
+</div>
+</div>
+<div class=sidebar>
+<ul class=sidebar-menu>
+<li class=active>
+<i class="fa fa-link" aria-hidden=true></i>
+<span>link查询</span>
+</li>
+<li>
+<i class="fa fa-calendar" aria-hidden=true></i>
+<span>版本前瞻</span>
+<span class=coming-soon>暂未开放</span>
+</li>
+<li>
+<i class="fa fa-share-alt" aria-hidden=true></i>
+<span>数据分享</span>
+<span class=coming-soon>暂未开放</span>
+</li>
+<li>
+<i class="fa fa-video-camera" aria-hidden=true></i>
+<span>视频攻略</span>
+<span class=coming-soon>暂未开放</span>
+</li>
+<li>
+<i class="fa fa-users" aria-hidden=true></i>
+<span>集团合影</span>
+<span class=coming-soon>暂未开放</span>
+</li>
+</ul>
+</div>
+<div class=main-content>
+<h1 class=page-title>低调集团欢迎您</h1>
+<div class=search-container>
+<div class=search-box>
+<input type=text id=searchInput placeholder=请输入职业名称 autocomplete=off>
+<button class=search-btn>搜索</button>
+<button class=reset-btn title=重置><i class="fa fa-refresh fa-lg" aria-hidden=true></i></button>
+<div class=suggestions id=suggestions></div>
+</div>
+<div class=history-row id=historyRow></div>
+</div>
+<div class=divider></div>
+<div class=expandable-section>
+<div class=expand-header onclick=toggleExpand()>
+<span>职业筛选</span>
+<i class="fa fa-chevron-down arrow" aria-hidden=true></i>
+</div>
+<div class=expand-content id=expandContent>
+<div class=category-row>
+<span><font size=4>职业类型</font></span>
+<div class=category-actions>
+<button class="btn-style-2 all-btn active" data-action=all1 data-category=type><b><font size=4>全部</font></b></button>
+<button class=btn-style-2 data-action=zhanshi data-category=type><font size=4>战士</font></button>
+<button class=btn-style-2 data-action=fashi data-category=type><font size=4>法师</font></button>
+<button class=btn-style-2 data-action=gongshou data-category=type><font size=4>弓手</font></button>
+<button class=btn-style-2 data-action=feixia data-category=type><font size=4>飞侠</font></button>
+<button class=btn-style-2 data-action=haidao data-category=type><font size=4>海盗</font></button>
+</div>
+</div>
+<div class=category-row>
+<span><font size=4>职业阵营</font></span>
+<div class=category-actions>
+<button class="btn-style-2 all-btn active" data-action=all2 data-category=faction><b><font size=3>全部</font></b></button>
+<button class=btn-style-2 data-action=maoxianjia data-category=faction>冒险家</button>
+<button class=btn-style-2 data-action=qishituan data-category=faction>骑士团</button>
+<button class=btn-style-2 data-action=yingxiong data-category=faction>英雄</button>
+<button class=btn-style-2 data-action=fankongzhe data-category=faction>反抗者</button>
+<button class=btn-style-2 data-action=noba data-category=faction>诺巴</button>
+<button class=btn-style-2 data-action=chaoyuezhe data-category=faction>超越者</button>
+<button class=btn-style-2 data-action=haoyoushijie data-category=faction>好友世界</button>
+<button class=btn-style-2 data-action=yiren data-category=faction>翼人</button>
+<button class=btn-style-2 data-action=anima data-category=faction>阿尼玛</button>
+<button class=btn-style-2 data-action=xiaozhizhen data-category=faction>晓之阵</button>
+<button class=btn-style-2 data-action=jianghu data-category=faction>江湖</button>
+</div>
+</div>
+<div class=category-row>
+<span><font size=4>职业属性</font></span>
+<div class=category-actions>
+<button class="btn-style-2 all-btn active" data-action=all3 data-category=attribute><b><font size=3>全部</font></b></button>
+<button class=btn-style-2 data-action=gongmo data-category=attribute>攻击&魔力</button>
+<button class=btn-style-2 data-action=Bshang data-category=attribute>Boss伤害</button>
+<button class=btn-style-2 data-action=baoshang data-category=attribute>暴击伤害</button>
+<button class=btn-style-2 data-action=baoji data-category=attribute>暴击率</button>
+<button class=btn-style-2 data-action=zengshang data-category=attribute>提升伤害</button>
+<button class=btn-style-2 data-action=jinengcd data-category=attribute>技能CD</button>
+<button class=btn-style-2 data-action=wushi data-category=attribute>无视防御</button>
+<button class=btn-style-2 data-action=buffshijian data-category=attribute>Buff时间</button>
+<button class=btn-style-2 data-action=jingyan data-category=attribute>经验</button>
+<button class=btn-style-2 data-action=shoucang data-category=attribute>收藏</button>
+</div>
+</div>
+</div>
+</div>
+<div class=display-area>
+<div class=card-row data-occupation=英雄 data-type=zhanshi data-faction=maoxianjia>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>英雄</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+力量+40/80/100<br>
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/1-3.png alt=示例图片>
+<div class=content>
+<div class=title>不灭信念</div>
+<div class=description>
+血量低于15%时，3秒内每秒恢复血量23%/29%/35%，冷却370/290/210秒
+</div>
+<div class=footer-text>
+3种不同冒险家战士link可叠加，只占用1个link栏位<br>
+buff持续增加、冷却重置、冷却减少均无效
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=圣骑士 data-type=zhanshi data-faction=maoxianjia>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>圣骑士</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+力量+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/1-3.png alt=示例图片>
+<div class=content>
+<div class=title>不灭信念</div>
+<div class=description>
+血量低于15%时，3秒内每秒恢复血量23%/29%/35%，冷却370/290/210秒
+</div>
+<div class=footer-text>
+3种不同冒险家战士link可叠加，只占用1个link栏位<br>
+buff持续增加、冷却重置、冷却减少均无效
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=黑骑士 data-type=zhanshi data-faction=maoxianjia>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>黑骑士</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+最大血量+4%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/1-3.png alt=示例图片>
+<div class=content>
+<div class=title>不灭信念</div>
+<div class=description>
+血量低于15%时，3秒内每秒恢复血量23%/29%/35%，冷却370/290/210秒
+</div>
+<div class=footer-text>
+3种不同冒险家战士link可叠加，只占用1个link栏位<br>
+buff持续增加、冷却重置、冷却减少均无效
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=火毒魔导师 data-type=fashi data-faction=maoxianjia data-attribute=zengshang,wushi>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>火毒魔导师</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+最大魔量+4%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/4-6.png alt=示例图片>
+<div class=content>
+<div class=title>实战经验</div>
+<div class=description>
+攻击时17%/21%/25%概率对最大HP最高的敌人标记10秒<br>
+最多3次叠加，每层标记无视防御率+1%/2%/3%、伤害+1%2%/3%
+</div>
+<div class=footer-text>
+3种不同冒险家法师link可叠加，只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=冰雷魔导师 data-type=fashi data-faction=maoxianjia data-attribute=zengshang,wushi>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>冰雷魔导师</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+智力+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/4-6.png alt=示例图片>
+<div class=content>
+<div class=title>实战经验</div>
+<div class=description>
+攻击时17%/21%/25%概率对最大HP最高的敌人标记10秒<br>
+最多3次叠加，每层标记无视防御率+1%/2%/3%、伤害+1%2%/3%
+</div>
+<div class=footer-text>
+3种不同冒险家法师link可叠加，只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=主教 data-type=fashi data-faction=maoxianjia data-attribute=zengshang,wushi>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>主教</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+智力+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/4-6.png alt=示例图片>
+<div class=content>
+<div class=title>实战经验</div>
+<div class=description>
+攻击时17%/21%/25%概率对最大HP最高的敌人标记10秒<br>
+最多3次叠加，每层标记无视防御率+1%/2%/3%、伤害+1%2%/3%
+</div>
+<div class=footer-text>
+3种不同冒险家法师link可叠加，只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=神射手 data-type=gongshou data-faction=maoxianjia data-attribute=baoji,shoucang>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-23">
+<div class=content>
+<div class=title><font size=5>神射手</font></div>
+</div>
+</div>
+<div class="card card-33">
+<div class=content>
+<div class=description>
+敏捷+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-43">
+<img src=image/7-9.png alt=示例图片>
+<div class=content>
+<div class=title>冒险求知欲</div>
+<div class=description>
+怪物收藏率+15%/25%/35%、暴击率+4%/7%/10%
+</div>
+<div class=footer-text>
+3种不同冒险家弓手link可叠加，只占用1个link栏位，怪物收藏率为乘法加成
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=箭神 data-type=gongshou data-faction=maoxianjia data-attribute=baoji,shoucang>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-23">
+<div class=content>
+<div class=title><font size=5>箭神</font></div>
+</div>
+</div>
+<div class="card card-33">
+<div class=content>
+<div class=description>
+暴击率+3%/4%/5%
+</div>
+</div>
+</div>
+<div class="card card-43">
+<img src=image/7-9.png alt=示例图片>
+<div class=content>
+<div class=title>冒险求知欲</div>
+<div class=description>
+怪物收藏率+15%/25%/35%、暴击率+4%/7%/10%
+</div>
+<div class=footer-text>
+3种不同冒险家弓手link可叠加，只占用1个link栏位，怪物收藏率为乘法加成
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=古迹猎人 data-type=gongshou data-faction=maoxianjia data-attribute=baoji,shoucang>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-23">
+<div class=content>
+<div class=title><font size=5>古迹猎人</font></div>
+</div>
+</div>
+<div class="card card-33">
+<div class=content>
+<div class=description>
+敏捷+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-43">
+<img src=image/7-9.png alt=示例图片>
+<div class=content>
+<div class=title>冒险求知欲</div>
+<div class=description>
+怪物收藏率+15%/25%/35%、暴击率+4%/7%/10%
+</div>
+<div class=footer-text>
+3种不同冒险家弓手link可叠加，只占用1个link栏位，怪物收藏率为乘法加成
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=隐士 data-type=feixia data-faction=maoxianjia data-attribute=baoji,zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-24">
+<div class=content>
+<div class=title><font size=5>隐士</font></div>
+</div>
+</div>
+<div class="card card-34">
+<div class=content>
+<div class=description>
+暴击率+3%/4%/5%
+</div>
+</div>
+</div>
+<div class="card card-44">
+<img src=image/10-12.png alt=示例图片>
+<div class=content>
+<div class=title>窃贼诡道</div>
+<div class=description>
+对敌人附加异常状态后10秒内自身伤害+6%/12%/18%，冷却20秒
+</div>
+<div class=footer-text>
+3种不同冒险家飞侠link可叠加只占用1个link栏位<br>
+buff持续增加、冷却重置、冷却减少均无效、冷却从触发buff开始计算
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=侠盗 data-type=feixia data-faction=maoxianjia data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-24">
+<div class=content>
+<div class=title><font size=5>侠盗</font></div>
+</div>
+</div>
+<div class="card card-34">
+<div class=content>
+<div class=description>
+运气+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-44">
+<img src=image/10-12.png alt=示例图片>
+<div class=content>
+<div class=title>窃贼诡道</div>
+<div class=description>
+对敌人附加异常状态后10秒内自身伤害+6%/12%/18%，冷却20秒
+</div>
+<div class=footer-text>
+3种不同冒险家飞侠link可叠加只占用1个link栏位<br>
+buff持续增加、冷却重置、冷却减少均无效、冷却从触发buff开始计算
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=暗影双刀 data-type=feixia data-faction=maoxianjia data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-24">
+<div class=content>
+<div class=title><font size=5>暗影双刀</font></div>
+</div>
+</div>
+<div class="card card-34">
+<div class=content>
+<div class=description>
+运气+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-44">
+<img src=image/10-12.png alt=示例图片>
+<div class=content>
+<div class=title>窃贼诡道</div>
+<div class=description>
+对敌人附加异常状态后10秒内自身伤害+6%/12%/18%，冷却20秒
+</div>
+<div class=footer-text>
+3种不同冒险家飞侠link可叠加只占用1个link栏位<br>
+buff持续增加、冷却重置、冷却减少均无效，冷却从触发buff开始计算
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=冲锋队长 data-type=haidao data-faction=maoxianjia>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>冲锋队长</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+力量+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/13-15.png alt=示例图片>
+<div class=content>
+<div class=title>海盗祝福</div>
+<div class=description>
+全属性+30/50/70，最大血量和魔量+525/875/1225，伤害吸收+7%/11%/15%
+</div>
+<div class=footer-text>
+3种不同冒险家海盗link可叠加只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=船长 data-type=haidao data-faction=maoxianjia data-attribute=buffshijian>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>船长</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+召唤兽持续时间+8%/10%/12%
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/13-15.png alt=示例图片>
+<div class=content>
+<div class=title>海盗祝福</div>
+<div class=description>
+全属性+30/50/70，最大血量和魔量+525/875/1225，伤害吸收+7%/11%/15%
+</div>
+<div class=footer-text>
+3种不同冒险家海盗link可叠加只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=神炮王 data-type=haidao data-faction=maoxianjia>
+<div class="card card-10">
+<div class=content>
+<div class=title>冒险家</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>神炮王</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+力量+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/13-15.png alt=示例图片>
+<div class=content>
+<div class=title>海盗祝福</div>
+<div class=description>
+全属性+30/50/70，最大血量和魔量+525/875/1225，伤害吸收+7%/11%/15%
+</div>
+<div class=footer-text>
+3种不同冒险家海盗link可叠加只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=米哈尔 data-type=zhanshi data-faction=qishituan>
+<div class="card card-10">
+<div class=content>
+<div class=title>骑士团</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>米哈尔</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+最大血量+1000/2000/2500
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/16.png alt=示例图片>
+<div class=content>
+<div class=title>光之守护</div>
+<div class=description>
+15秒内异常状态抗性+100，冷却120秒
+</div>
+<div class=footer-text>
+link可以宠物自动释放
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=魂骑士 data-type=zhanshi data-faction=qishituan data-attribute=gongmo>
+<div class="card card-10">
+<div class=content>
+<div class=title>骑士团</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>魂骑士</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+最大HP+1000/2000/2500
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/17-21.png alt=示例图片>
+<div class=content>
+<div class=title>希纳斯护佑</div>
+<div class=description>
+物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
+异常状态抗性+3/6/9/12/15
+</div>
+<div class=footer-text>
+5种不同骑士团成员职业link可叠加只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=炎术士 data-type=fashi data-faction=qishituan data-attribute=gongmo>
+<div class="card card-10">
+<div class=content>
+<div class=title>骑士团</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>炎术士</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+智力+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/17-21.png alt=示例图片>
+<div class=content>
+<div class=title>希纳斯护佑</div>
+<div class=description>
+物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
+异常状态抗性+3/6/9/12/15
+</div>
+<div class=footer-text>
+5种不同骑士团成员职业link可叠加只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=风灵使者 data-type=gongshou data-faction=qishituan data-attribute=gongmo>
+<div class="card card-10">
+<div class=content>
+<div class=title>骑士团</div>
+</div>
+</div>
+<div class="card card-23">
+<div class=content>
+<div class=title><font size=5>风灵使者</font></div>
+</div>
+</div>
+<div class="card card-33">
+<div class=content>
+<div class=description>
+敏捷+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-43">
+<img src=image/17-21.png alt=示例图片>
+<div class=content>
+<div class=title>希纳斯护佑</div>
+<div class=description>
+物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
+异常状态抗性+3/6/9/12/15
+</div>
+<div class=footer-text>
+5种不同骑士团成员职业link可叠加只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=夜行者 data-type=feixia data-faction=qishituan data-attribute=gongmo>
+<div class="card card-10">
+<div class=content>
+<div class=title>骑士团</div>
+</div>
+</div>
+<div class="card card-24">
+<div class=content>
+<div class=title><font size=5>夜行者</font></div>
+</div>
+</div>
+<div class="card card-34">
+<div class=content>
+<div class=description>
+运气+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-44">
+<img src=image/17-21.png alt=示例图片>
+<div class=content>
+<div class=title>希纳斯护佑</div>
+<div class=description>
+物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
+异常状态抗性+3/6/9/12/15
+</div>
+<div class=footer-text>
+5种不同骑士团成员职业link可叠加只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=奇袭者 data-type=haidao data-faction=qishituan data-attribute=gongmo>
+<div class="card card-10">
+<div class=content>
+<div class=title>骑士团</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>奇袭者</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+力量+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/17-21.png alt=示例图片>
+<div class=content>
+<div class=title>希纳斯护佑</div>
+<div class=description>
+物攻和魔攻+9/13/17/21/25、属性抗性+3%/6%/9%/12%/15%<br>
+异常状态抗性+3/6/9/12/15
+</div>
+<div class=footer-text>
+5种不同骑士团成员职业link可叠加只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=战神 data-type=zhanshi data-faction=yingxiong data-attribute=jingyan>
+<div class="card card-10">
+<div class=content>
+<div class=title>英雄</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>战神</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+攻击时70%概率恢复血量6%/8%/10%，<br>
+连续触发时效果翻倍概率下降连续触发失败时冷却10秒<br>
+杀敌时获得1%经验值，持续30秒，冷却10秒
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/22.png alt=示例图片>
+<div class=content>
+<div class=title>连击优势</div>
+<div class=description>
+连击宝珠经验+650%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=龙神 data-type=fashi data-faction=yingxiong data-attribute=jingyan>
+<div class="card card-10">
+<div class=content>
+<div class=title>英雄</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>龙神</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+攻击时70%概率恢复魔量6%/8%/10%<br>
+连续触发时效果翻倍概率下降，连续触发失败时冷却10秒<br>
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/23.png alt=示例图片>
+<div class=content>
+<div class=title>符文延续</div>
+<div class=description>
+解放符文时双倍经验buff持续时间+50%
+</div>
+<div class=footer-text>
+link只对双倍经验buff有效，符文特有的效果无效
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=夜光法师 data-type=fashi data-faction=yingxiong data-attribute=wushi>
+<div class="card card-10">
+<div class=content>
+<div class=title>英雄</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>夜光法师</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+智力+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/24.png alt=示例图片>
+<div class=content>
+<div class=title>穿透</div>
+<div class=description>
+无视防御率+15%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=双弩精灵 data-type=gongshou data-faction=yingxiong data-attribute=jinengcd,jingyan>
+<div class="card card-10">
+<div class=content>
+<div class=title>英雄</div>
+</div>
+</div>
+<div class="card card-23">
+<div class=content>
+<div class=title><font size=5>双弩精灵</font></div>
+</div>
+</div>
+<div class="card card-33">
+<div class=content>
+<div class=description>
+技能冷却时间-4%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-43">
+<img src=image/25.png alt=示例图片>
+<div class=content>
+<div class=title>精灵的祝福</div>
+<div class=description>
+经验值获得量+15%
+</div>
+<div class=footer-text>
+link使用时可以回到埃欧雷冷却1800秒
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=幻影 data-type=feixia data-faction=yingxiong data-attribute=baoji>
+<div class="card card-10">
+<div class=content>
+<div class=title>英雄</div>
+</div>
+</div>
+<div class="card card-24">
+<div class=content>
+<div class=title><font size=5>幻影</font></div>
+</div>
+</div>
+<div class="card card-34">
+<div class=content>
+<div class=description>
+金币获得量+3%/4%/5%
+</div>
+</div>
+</div>
+<div class="card card-44">
+<img src=image/26.png alt=示例图片>
+<div class=content>
+<div class=title>致命本能</div>
+<div class=description>
+暴击率+15%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=隐月 data-type=haidao data-faction=yingxiong data-attribute=baoshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>英雄</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>隐月</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+暴击伤害+3%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/27.png alt=示例图片>
+<div class=content>
+<div class=title>九死一生</div>
+<div class=description>
+受到致命攻击时10%概率不死
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=恶魔猎手,红毛 data-type=zhanshi data-faction=fankangzhe data-attribute=Bshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>反抗者</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>恶魔猎手</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+异常状态抗性+3/4/5
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/28.png alt=示例图片>
+<div class=content>
+<div class=title>恶魔之怒</div>
+<div class=description>
+boss伤害+15%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=恶魔复仇者,白毛 data-type=zhanshi data-faction=fankangzhe data-attribute=Bshang,zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>反抗者</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>恶魔复仇者</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+boss伤害+3%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/29.png alt=示例图片>
+<div class=content>
+<div class=title>野性狂怒</div>
+<div class=description>
+伤害+10%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=爆破手 data-type=zhanshi data-faction=fankangzhe data-attribute=wushi>
+<div class="card card-10">
+<div class=content>
+<div class=title>反抗者</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>爆破手</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+无视防御率+3%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/30-33.png alt=示例图片>
+<div class=content>
+<div class=title>自由化身</div>
+<div class=description>
+复活后2/4/6/8秒内不受伤害
+</div>
+<div class=footer-text>
+4种不同反抗者原生职业link可叠加，只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=唤灵斗师,脚气,脚气师 data-type=fashi data-faction=fankangzhe>
+<div class="card card-10">
+<div class=content>
+<div class=title>反抗者</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>唤灵斗师</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+智力+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/30-33.png alt=示例图片>
+<div class=content>
+<div class=title>自由化身</div>
+<div class=description>
+复活后2/4/6/8秒内不受伤害
+</div>
+<div class=footer-text>
+4种不同反抗者原生职业link可叠加，只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=豹弩游侠,豹子 data-type=gongshou data-faction=fankangzhe data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>反抗者</div>
+</div>
+</div>
+<div class="card card-23">
+<div class=content>
+<div class=title><font size=5>豹弩游侠</font></div>
+</div>
+</div>
+<div class="card card-33">
+<div class=content>
+<div class=description>
+攻击时20%概率伤害+12%/16%/20%
+</div>
+</div>
+</div>
+<div class="card card-43">
+<img src=image/30-33.png alt=示例图片>
+<div class=content>
+<div class=title>自由化身</div>
+<div class=description>
+复活后2/4/6/8秒内不受伤害
+</div>
+<div class=footer-text>
+4种不同反抗者原生职业link可叠加，只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=机械师,轮椅,轮椅师 data-type=haidao data-faction=fankangzhe data-attribute=buffshijian>
+<div class="card card-10">
+<div class=content>
+<div class=title>反抗者</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>机械师</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+buff持续时间+15%/20%/25%
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/30-33.png alt=示例图片>
+<div class=content>
+<div class=title>自由化身</div>
+<div class=description>
+复活后2/4/6/8秒内不受伤害
+</div>
+<div class=footer-text>
+4种不同反抗者原生职业link可叠加，只占用1个link栏位
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=尖兵 data-type=feixia,haidao data-faction=fankangzhe>
+<div class="card card-10">
+<div class=content>
+<div class=title>反抗者</div>
+</div>
+</div>
+<div class="card card-26">
+<div class=content>
+<div class=title><font size=5>尖兵</font></div>
+</div>
+</div>
+<div class="card card-36">
+<div class=content>
+<div class=description>
+力量、敏捷、运气+20/40/50
+</div>
+</div>
+</div>
+<div class="card card-46">
+<img src=image/34.png alt=示例图片>
+<div class=content>
+<div class=title>混合逻辑</div>
+<div class=description>
+全属性+10%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=狂龙战士 data-type=zhanshi data-faction=noba>
+<div class="card card-10">
+<div class=content>
+<div class=title>诺巴</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>狂龙战士</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+力量+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/35.png alt=示例图片>
+<div class=content>
+<div class=title>钢铁之墙</div>
+<div class=description>
+最大HP +15%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=炼狱黑客 data-type=gongshou data-faction=noba data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>诺巴</div>
+</div>
+</div>
+<div class="card card-23">
+<div class=content>
+<div class=title><font size=5>炼狱黑客</font></div>
+</div>
+</div>
+<div class="card card-33">
+<div class=content>
+<div class=description>
+敏捷+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-43">
+<img src=image/36.png alt=示例图片>
+<div class=content>
+<div class=title>率先战斗准备</div>
+<div class=description>
+每杀死8只怪物或攻击5次boss叠加1层<br>
+每叠加5层时，20秒内伤害+17%，冷却40秒
+</div>
+<div class=footer-text>
+link冷却期间无法计数，buff持续增加，冷却重置，冷却减少均无效<br>
+冷却从触发buff开始计算
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=魔链影士 data-type=feixia data-faction=noba data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>诺巴</div>
+</div>
+</div>
+<div class="card card-24">
+<div class=content>
+<div class=title><font size=5>魔链影士</font></div>
+</div>
+</div>
+<div class="card card-34">
+<div class=content>
+<div class=description>
+运气+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-44">
+<img src=image/37.png alt=示例图片>
+<div class=content>
+<div class=title>强力侮辱</div>
+<div class=description>
+等级低于角色的怪物伤害+6%、陷入异常状态的怪物伤害+6%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=爆莉萌天使 data-type=haidao data-faction=noba data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>诺巴</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>爆莉萌天使</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+敏捷+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/38.png alt=示例图片>
+<div class=content>
+<div class=title>灵魂契约</div>
+<div class=description>
+10秒内伤害+45%，冷却90秒
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=神之子 data-type=zhanshi data-faction=chaoyuezhe data-attribute=jingyan,wushi>
+<div class="card card-10">
+<div class=content>
+<div class=title>超越者</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>神之子</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+经验值获得量+8%/10%/12%
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/39.png alt=示例图片>
+<div class=content>
+<div class=title>伦娜的祝福</div>
+<div class=description>
+伤害吸收+15%、无视防御率+10%
+</div>
+<div class=footer-text>
+link为5级数据需要完成178级剧情，角色卡在180级而非140级达到S
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=超能力者 data-type=fashi data-faction=haoyoushijie data-attribute=baoshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>好友世界</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>超能力者</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+智力+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/40.png alt=示例图片>
+<div class=content>
+<div class=title>判断</div>
+<div class=description>
+暴击伤害+4%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=御剑骑士,阿黛尔,阿呆 data-type=zhanshi data-faction=yiren data-attribute=Bshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>翼人</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>御剑骑士</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+力量+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/41.png alt=示例图片>
+<div class=content>
+<div class=title>初心者</div>
+<div class=description>
+boss伤害+4%，同一地图每有1名队友 自身伤害+2%最多4次叠加
+</div>
+<div class=footer-text>
+没有组队时视作单人组队
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=圣晶使徒,黑皮 data-type=fashi data-faction=yiren data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>翼人</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>圣晶使徒</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+智力+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/42.png alt=示例图片>
+<div class=content>
+<div class=title>持续战役</div>
+<div class=description>
+每移动一定距离伤害+3%，持续时间10秒最多4次叠加
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=飞刃沙士,卡莉 data-type=feixia data-faction=yiren data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>翼人</div>
+</div>
+</div>
+<div class="card card-24">
+<div class=content>
+<div class=title><font size=5>飞刃沙士</font></div>
+</div>
+</div>
+<div class="card card-34">
+<div class=content>
+<div class=description>
+运气+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-44">
+<img src=image/43.png alt=示例图片>
+<div class=content>
+<div class=title>生来天赋</div>
+<div class=description>
+伤害+5%，攻击时100%概率5秒内每秒恢复最大血量和魔量 2%，冷却30秒
+</div>
+<div class=footer-text>
+攻击需命中怪物，召唤物攻击不计入<br>
+buff持续增加、冷却重置、冷却减少均无效，冷却从触发buff开始计算
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=影魂异人,亚克 data-type=haidao data-faction=yiren data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>翼人</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>影魂异人</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+力量+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/44.png alt=示例图片>
+<div class=content>
+<div class=title>无我之境</div>
+<div class=description>
+每保持战斗状态5秒伤害+2%，<br>
+持续时间5秒最多5次叠加，首次叠加时额外伤害+1%
+</div>
+<div class=footer-text>
+召唤物不计入战斗状态
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=元素师,拉拉 data-type=fashi data-faction=anima data-attribute=zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>阿尼玛</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>元素师</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+智力+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/45.png alt=示例图片>
+<div class=content>
+<div class=title>大自然的伙伴</div>
+<div class=description>
+伤害+5%，<br>
+每杀死20只普通怪物，30秒内普通怪物伤害+11%，冷却30秒
+</div>
+<div class=footer-text>
+link冷却期间无法计数，冷却从触发buff开始计算
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=虎影 data-type=feixia data-faction=anima data-attribute=zengshang,wushi>
+<div class="card card-10">
+<div class=content>
+<div class=title>阿尼玛</div>
+</div>
+</div>
+<div class="card card-24">
+<div class=content>
+<div class=title><font size=5>虎影</font></div>
+</div>
+</div>
+<div class="card card-34">
+<div class=content>
+<div class=description>
+运气+40/80/100
+</div>
+</div>
+</div>
+<div class="card card-44">
+<img src=image/46.png alt=示例图片>
+<div class=content>
+<div class=title>自信感</div>
+<div class=description>
+无视防御率+10%，对100%HP敌人伤害+14%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=剑豪 data-type=zhanshi data-faction=xiaozhizhen data-attribute=baoshang,gongmo>
+<div class="card card-10">
+<div class=content>
+<div class=title>晓之阵</div>
+</div>
+</div>
+<div class="card card-21">
+<div class=content>
+<div class=title><font size=5>剑豪</font></div>
+</div>
+</div>
+<div class="card card-31">
+<div class=content>
+<div class=description>
+暴击伤害+3%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-41">
+<img src=image/47.png alt=示例图片>
+<div class=content>
+<div class=title>疾风传授</div>
+<div class=description>
+全属性+25,攻击力和魔力+15
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=阴阳师 data-type=fashi data-faction=xiaozhizhen data-attribute=Bshang,zengshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>晓之阵</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>阴阳师</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+boss伤害+3%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/48.png alt=示例图片>
+<div class=content>
+<div class=title>紫扇传授</div>
+<div class=description>
+伤害+10%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=琳,林之灵,森林小主 data-type=fashi data-faction=jianghu data-attribute=Bshang,baoji,wushi>
+<div class="card card-10">
+<div class=content>
+<div class=title>江湖</div>
+</div>
+</div>
+<div class="card card-22">
+<div class=content>
+<div class=title><font size=5>琳</font></div>
+</div>
+</div>
+<div class="card card-32">
+<div class=content>
+<div class=description>
+无视防御率+3%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-42">
+<img src=image/49.png alt=示例图片>
+<div class=content>
+<div class=title>精灵集中</div>
+<div class=description>
+boss伤害+7%、暴击率+7%、最大血量+4%、最大魔量+4%
+</div>
+</div>
+</div>
+</div>
+<div class=card-row data-occupation=墨玄,武神,龙人,龙的传人 data-type=haidao data-faction=jianghu data-attribute=Bshang,baoshang>
+<div class="card card-10">
+<div class=content>
+<div class=title>江湖</div>
+</div>
+</div>
+<div class="card card-25">
+<div class=content>
+<div class=title><font size=5>墨玄</font></div>
+</div>
+</div>
+<div class="card card-35">
+<div class=content>
+<div class=description>
+暴击伤害+3%/5%/6%
+</div>
+</div>
+</div>
+<div class="card card-45">
+<img src=image/50.png alt=示例图片>
+<div class=content>
+<div class=title>气魄</div>
+<div class=description>
+boss伤害+4%，每次攻击boss时boss伤害+2%<br>
+每2秒可叠加1次，持续时间5秒最多6次叠加
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class=back-to-top id=backToTop>
+<i class="fa fa-long-arrow-up fa-lg" aria-hidden=true></i>
+</div>
+<footer>
+<p>© 2025 角色卡&link查询 by 低调集团 帅总</p>
+</footer>
+</div>
+<script>const occupations=["英雄","圣骑士","黑骑士","火毒魔导师","冰雷魔导师","主教","神射手","箭神","古迹猎人","隐士","侠盗","暗影双刀","冲锋队长","船长","神炮王","米哈尔","魂骑士","炎术士","风灵使者","夜行者","奇袭者","战神","龙神","夜光法师","双弩精灵","幻影","隐月","恶魔猎手","恶魔复仇者","爆破手","唤灵斗师","豹弩游侠","机械师","尖兵","狂龙战士","炼狱黑客","魔链影士","爆莉萌天使","神之子","超能力者","御剑骑士","圣晶使徒","飞刃沙士","影魂异人","元素师","虎影","剑豪","阴阳师","琳","墨玄"];const welcomeModal=document.getElementById('welcomeModal');const welcomeConfirm=document.getElementById('welcomeConfirm');window.addEventListener('load',function(){setTimeout(()=>{welcomeModal.classList.add('show');},500);});welcomeConfirm.addEventListener('click',function(){welcomeModal.classList.remove('show');});const searchInput=document.getElementById('searchInput');const suggestions=document.getElementById('suggestions');searchInput.addEventListener('input',function(){const inputText=this.value.trim().replace(/\s+/g,'');if(inputText.length===0){suggestions.style.display='none';return;}
+const matched=occupations.filter(item=>item.toLowerCase().includes(inputText.toLowerCase()));showSuggestions(matched);});function showSuggestions(items){suggestions.innerHTML=items.map(item=>`<div class="suggestion-item">${highlightMatch(item)}</div>`).join('');suggestions.style.display=items.length?'block':'none';}
+function highlightMatch(text){const query=searchInput.value.trim().toLowerCase();const index=text.toLowerCase().indexOf(query);if(index===-1)return text;return`${text.slice(0,index)}<span class="highlight">${text.slice(index,index+query.length)}</span>${text.slice(index+query.length)}`.replace(/\s+/g,'');}
+suggestions.addEventListener('click',(e)=>{const selectedItem=e.target.closest('.suggestion-item');if(selectedItem){const textContent=selectedItem.textContent||selectedItem.innerText;searchInput.value=textContent.replace(/\s+/g,'');suggestions.style.display='none';}});document.addEventListener('click',(e)=>{if(!e.target.closest('.search-container')){suggestions.style.display='none';}});const MAX_HISTORY=5;const historyRow=document.getElementById('historyRow');let searchHistory=JSON.parse(localStorage.getItem('careerSearchHistory'))||[];function updateHistoryDisplay(){historyRow.innerHTML='';const showHistory=searchHistory.slice(0,MAX_HISTORY);showHistory.forEach(item=>{const btn=document.createElement('button');btn.className='history-btn';btn.textContent=item;btn.onclick=()=>{searchInput.value=item;performSearch();};historyRow.appendChild(btn);});if(searchHistory.length>0){const clearBtn=document.createElement('button');clearBtn.className='history-btn clear-history-btn';clearBtn.textContent='清除记录';clearBtn.onclick=()=>{searchHistory=[];localStorage.setItem('careerSearchHistory',JSON.stringify(searchHistory));updateHistoryDisplay();};historyRow.appendChild(clearBtn);}}
+function toggleExpand(forceCollapse=false){const content=document.getElementById('expandContent');const icon=document.querySelector('.expand-header .arrow');if(forceCollapse){content.style.maxHeight=null;icon.style.transform='rotate(0deg)';return;}
+content.style.maxHeight=content.style.maxHeight?null:`${content.scrollHeight}px`;icon.style.transform=content.style.maxHeight?'rotate(180deg)':'rotate(0deg)';}
+document.querySelectorAll('.btn-style-2').forEach(button=>{button.addEventListener('click',function(){const categoryRow=this.closest('.category-row');const category=this.dataset.category;const action=this.dataset.action;if(searchInput.value.trim()){searchInput.value='';resetAllFilters(true);}
+if(this.classList.contains('all-btn')){categoryRow.querySelectorAll(`.btn-style-2[data-category="${category}"]:not(.all-btn)`).forEach(btn=>btn.classList.remove('active'));this.classList.add('active');}
+else{const allBtn=categoryRow.querySelector('.all-btn');allBtn.classList.remove('active');this.classList.toggle('active');const hasActive=categoryRow.querySelector(`.btn-style-2[data-category="${category}"].active:not(.all-btn)`);if(!hasActive){allBtn.classList.add('active');}}
+const content=document.getElementById('expandContent');if(content.style.maxHeight==='0px'||!content.style.maxHeight){toggleExpand();}
+filterCards();});});function resetAllFilters(keepFilters=false){searchInput.value='';if(!keepFilters){document.querySelectorAll('.btn-style-2.all-btn').forEach(btn=>{btn.classList.add('active');});document.querySelectorAll('.btn-style-2:not(.all-btn)').forEach(btn=>{btn.classList.remove('active');});}
+filterCards();}
+function performSearch(){const query=searchInput.value.trim().replace(/\s+/g,'');if(query){searchHistory=[query,...searchHistory.filter(item=>item!==query)].slice(0,MAX_HISTORY);localStorage.setItem('careerSearchHistory',JSON.stringify(searchHistory));updateHistoryDisplay();document.querySelectorAll('.btn-style-2.all-btn').forEach(btn=>{btn.classList.add('active');});document.querySelectorAll('.btn-style-2:not(.all-btn)').forEach(btn=>{btn.classList.remove('active');});toggleExpand(true);filterCards();}else{document.querySelectorAll('.card-row').forEach(row=>{row.style.display='flex';});const noResultsMsg=document.getElementById('noResultsMessage');if(noResultsMsg){noResultsMsg.remove();}}}
+function filterCards(){const searchQuery=searchInput.value.trim().toLowerCase();const activeButtons=document.querySelectorAll('.btn-style-2.active:not(.all-btn)');const filterCategories={type:[],faction:[],attribute:[]};activeButtons.forEach(button=>{const category=button.dataset.category;const action=button.dataset.action;if(category==='type'){filterCategories.type.push(action);}else if(category==='faction'){filterCategories.faction.push(action);}else if(category==='attribute'){filterCategories.attribute.push(action);}});const hasTypeFilter=filterCategories.type.length>0;const hasFactionFilter=filterCategories.faction.length>0;const hasAttributeFilter=filterCategories.attribute.length>0;const cardRows=document.querySelectorAll('.card-row');let hasVisibleCards=false;cardRows.forEach(row=>{let shouldShow=true;if(searchQuery){const occupation=row.dataset.occupation.toLowerCase();if(!occupation.includes(searchQuery)){shouldShow=false;}}
+if(shouldShow&&!searchQuery){if(hasTypeFilter&&!filterCategories.type.includes(row.dataset.type)){shouldShow=false;}
+if(hasFactionFilter&&!filterCategories.faction.includes(row.dataset.faction)){shouldShow=false;}
+if(hasAttributeFilter){const rowAttributes=row.dataset.attribute?row.dataset.attribute.split(','):[];const hasMatchingAttribute=filterCategories.attribute.some(attr=>rowAttributes.includes(attr));if(!hasMatchingAttribute){shouldShow=false;}}}
+row.style.display=shouldShow?'flex':'none';if(shouldShow)hasVisibleCards=true;});const noResultsMsg=document.getElementById('noResultsMessage');if(!hasVisibleCards){if(!noResultsMsg){const msg=document.createElement('div');msg.id='noResultsMessage';msg.style.textAlign='center';msg.style.padding='20px';msg.style.color='#ccc';msg.textContent='没有找到匹配的职业卡片';document.querySelector('.display-area').prepend(msg);}}else if(noResultsMsg){noResultsMsg.remove();}
+requestAnimationFrame(optimizedAdjustColumnWidths);}
+const backToTop=document.getElementById('backToTop');function toggleBackToTop(){if(window.pageYOffset>300){backToTop.classList.add('show');}else{backToTop.classList.remove('show');}}
+backToTop.addEventListener('click',()=>{window.scrollTo({top:0,behavior:'smooth'});});window.addEventListener('scroll',toggleBackToTop);updateHistoryDisplay();window.addEventListener('load',function(){requestAnimationFrame(optimizedAdjustColumnWidths);});function optimizedAdjustColumnWidths(){const visibleRows=Array.from(document.querySelectorAll('.card-row')).filter(row=>row.style.display!=='none');if(visibleRows.length===0)return;requestAnimationFrame(()=>{const maxWidths=[0,0,0];visibleRows.forEach(row=>{const cards=row.querySelectorAll('.card');cards.forEach((card,index)=>{if(index<3){const width=card.getBoundingClientRect().width;if(width>maxWidths[index]){maxWidths[index]=width;}}});});visibleRows.forEach(row=>{const cards=row.querySelectorAll('.card');cards.forEach((card,index)=>{if(index<3){card.style.minWidth=`${maxWidths[index]}px`;}else if(index===3){card.style.minWidth='0';card.style.flex='1 1 auto';}});});});}
+document.querySelector('.search-btn').addEventListener('click',performSearch);document.querySelector('.reset-btn').addEventListener('click',()=>resetAllFilters(false));searchInput.addEventListener('keypress',function(e){if(e.key==='Enter'){performSearch();}});</script>
 </body>
 </html>
